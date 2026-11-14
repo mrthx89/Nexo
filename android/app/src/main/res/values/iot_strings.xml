@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="iot_activity_title">Perangkat IoT Studio</string>
+    <string name="iot_activity_subtitle">Philips WiZ • Local UDP 38899</string>
+    <string name="iot_scan_button">Pindai Wi-Fi</string>
+    <string name="iot_scanning">Memindai jaringan Wi-Fi lokal…</string>
+    <string name="iot_found_count">%d Lampu WiZ Terdeteksi (DHCP)</string>
+    <string name="iot_all_on">Nyalakan Semua</string>
+    <string name="iot_all_off">Matikan Semua</string>
+    <string name="iot_mode_focus">Mode Fokus</string>
+    <string name="iot_mode_relax">Mode Santai</string>
+    <string name="iot_empty_title">Belum Ada Lampu Terdeteksi</string>
+    <string name="iot_empty_desc">Pastikan HP terhubung ke Wi-Fi rumah yang sama dengan lampu Philips WiZ, lalu tekan tombol Pindai Wi-Fi.</string>
+    <string name="iot_brightness_label">Kecerahan: %d%%</string>
+    <string name="iot_color_warm">Putih Hangat</string>
+    <string name="iot_color_daylight">Putih Siang</string>
+    <string name="iot_color_cool">Putih Sejuk</string>
+    <string name="iot_color_cyan">Cyan</string>
+    <string name="iot_color_green">Hijau</string>
+    <string name="iot_color_red">Merah</string>
+    <string name="iot_color_purple">Ungu</string>
+    <string name="iot_color_amber">Amber</string>
+    <string name="iot_back_desc">Kembali ke Beranda</string>
+</resources>

@@ -97,3 +97,26 @@ def test_parse_wiz_brightness_command():
     assert expr == MascotExpression.SENANG
     assert event["action"] == "wiz_set_brightness"
     assert event["dimming"] == 80
+
+
+@pytest.mark.parametrize("cmd", [
+    "tampilkan iot",
+    "buka iot",
+    "daftar iot",
+    "list iot",
+    "tampilkan lampu",
+    "daftar lampu",
+    "nexo tampilkan iot",
+    "nexo buka iot",
+    "tampilkan lampu wiz",
+])
+def test_parse_show_iot_command(cmd):
+    res = parse_iot_command(cmd, is_sleeping=False)
+    assert res is not None
+    reply, expr, event = res
+    assert "Membuka daftar perangkat IoT studio Anda" in reply
+    assert expr == MascotExpression.SENANG
+    assert event["type"] == "iot_dialog"
+    assert event["action"] == "show_iot"
+    assert event["target"] == "iot_activity"
+

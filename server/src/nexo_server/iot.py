@@ -110,6 +110,26 @@ _COMBO_FOCUS_LIGHT_COMMANDS = {
     "pasang mode fokus dan nyalakan lampu",
 }
 
+_SHOW_IOT_COMMANDS = {
+    "tampilkan iot",
+    "buka iot",
+    "daftar iot",
+    "list iot",
+    "tampilkan lampu",
+    "buka lampu",
+    "daftar lampu",
+    "list lampu",
+    "kelola lampu",
+    "kelola iot",
+    "tampilkan perangkat iot",
+    "buka perangkat iot",
+    "daftar perangkat iot",
+    "perangkat iot",
+    "tampilkan lampu wiz",
+    "buka lampu wiz",
+    "daftar lampu wiz",
+}
+
 
 def get_iot_state() -> Dict[str, Any]:
     """Return a snapshot of the current smart studio state."""
@@ -293,6 +313,18 @@ def parse_iot_command(
     match = _COMMAND.fullmatch(clean)
     if match:
         clean_body = re.sub(r"[.?!,]+$", "", match["body"].strip()).strip()
+
+    # 0. Show IoT / WiZ Lighting Activity
+    if clean in _SHOW_IOT_COMMANDS or clean_body in _SHOW_IOT_COMMANDS:
+        state_snap = get_iot_state()
+        event = {
+            "type": "iot_dialog",
+            "action": "show_iot",
+            "target": "iot_activity",
+            "iot_state": state_snap,
+        }
+        reply = "Membuka daftar perangkat IoT studio Anda, Pak Yanto."
+        return reply, MascotExpression.SENANG, event
 
     # 1. Combo: Studio Light + Focus Mode
     if clean in _COMBO_FOCUS_LIGHT_COMMANDS or clean_body in _COMBO_FOCUS_LIGHT_COMMANDS:

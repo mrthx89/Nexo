@@ -699,6 +699,16 @@ class MainActivity : AppCompatActivity(), NexoKioskService.ServiceCallback {
         }
     }
 
+    override fun onIotDialogReceived(dialog: id.my.yhdev.nexo.network.IotDialog) {
+        runOnUiThread {
+            if (isFinishing || isDestroyed) return@runOnUiThread
+            if (dialog.action == "show_iot" || dialog.target == "iot_activity") {
+                val intent = Intent(this, id.my.yhdev.nexo.ui.IotDevicesActivity::class.java)
+                startActivity(intent)
+            }
+        }
+    }
+
     override fun onDestroy() {
         uiHandler.removeCallbacks(hideVoiceMood)
         uiHandler.removeCallbacks(pixelShiftRunnable)

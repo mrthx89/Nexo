@@ -19,6 +19,7 @@ from ..models.messages import (
     TTSEnd,
     PongMessage,
     VoiceprintDialog,
+    IotDialog,
     NexoState,
 )
 from ..pipeline.vad import EnergyVAD
@@ -867,6 +868,12 @@ class ApplianceSession:
             if self.hub:
                 self.hub.publish_event(iot_event)
             asyncio.create_task(trigger_external_iot_webhook(iot_event))
+            if iot_event.get("type") == "iot_dialog":
+                await self.send_json_message(IotDialog(
+                    action=iot_event.get("action", "show_iot"),
+                    target=iot_event.get("target", "iot_activity"),
+                    message=reply_text,
+                ))
             await self._speak_canned_reply(reply_text, reply_expr.value)
             return
 

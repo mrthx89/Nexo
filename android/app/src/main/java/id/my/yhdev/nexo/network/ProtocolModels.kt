@@ -95,3 +95,21 @@ data class VoiceprintQuery(
 data class VoiceprintUnenroll(
     @SerializedName("type") val type: String = "voiceprint_unenroll"
 )
+
+data class WizBulbItem(
+    @SerializedName("ip") val ip: String,
+    @SerializedName("mac") val mac: String? = null,
+    @SerializedName("name") val name: String? = null,
+    @SerializedName("state") val state: Boolean = false,
+    @SerializedName("dimming") val dimming: Int = 100,
+    @SerializedName("scene_id") val sceneId: Int? = null,
+    @SerializedName("temp") val temp: Int? = null
+)
+
+data class IotDialog(
+    @SerializedName("type") val type: String = "iot_dialog",
+    @SerializedName("action") val action: String = "show_iot",
+    @SerializedName("target") val target: String = "iot_activity",
+    @SerializedName("devices") val devices: List<WizBulbItem>? = null,
+    @SerializedName("message") val message: String? = null
+)

@@ -84,6 +84,7 @@ class NexoWebSocketClient(
         fun onTTSStarted()
         fun onTTSEnded()
         fun onVoiceprintDialogReceived(dialog: VoiceprintDialog)
+        fun onIotDialogReceived(dialog: IotDialog) {}
         fun onOutdoorControl(message: JsonObject) {}
         fun onOutdoorProtocolReady(session: OutdoorSession) {}
         fun usesTaggedOutput(): Boolean = false
@@ -288,6 +289,12 @@ class NexoWebSocketClient(
                     val dialog = runCatching { gson.fromJson(jsonString, VoiceprintDialog::class.java) }.getOrNull()
                     if (dialog != null) {
                         listener.onVoiceprintDialogReceived(dialog)
+                    }
+                }
+                "iot_dialog" -> {
+                    val dialog = runCatching { gson.fromJson(jsonString, IotDialog::class.java) }.getOrNull()
+                    if (dialog != null) {
+                        listener.onIotDialogReceived(dialog)
                     }
                 }
                 else -> error("invalid_message")

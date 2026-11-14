@@ -167,6 +167,7 @@ open class NexoKioskService : Service() {
         fun onEnrollmentLevel(amplitude: Float) {}
         fun onTranscriptionReceived(role: String, text: String, isFinal: Boolean)
         fun onVoiceprintDialogReceived(dialog: VoiceprintDialog)
+        fun onIotDialogReceived(dialog: id.my.yhdev.nexo.network.IotDialog) {}
         fun onRecordingSessionChanged(session: RecordingSession) {}
         fun onCaptureModeChanged(automatic: Boolean, available: Boolean) {}
     }
@@ -443,6 +444,9 @@ open class NexoKioskService : Service() {
                     publish(state, message, expression)
             }
             override fun onVoiceprintDialogReceived(dialog: VoiceprintDialog) = dispatch { voiceprint(dialog) }
+            override fun onIotDialogReceived(dialog: id.my.yhdev.nexo.network.IotDialog) = dispatch {
+                serviceCallback?.onIotDialogReceived(dialog)
+            }
             // Untagged callbacks cannot affect v2 state, output or microphone ownership.
             override fun onTelemetryReceived(amplitude: Float, bands: List<Float>?) {}
             override fun onTranscriptionReceived(role: String, text: String, isFinal: Boolean) {}

@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardBulbItem"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:background="@drawable/bg_iot_card"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Header: Icon, Bulb Name & Network Info, Power Switch -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/ivBulbIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="12dp"
+            android:src="@drawable/ic_lightbulb_24"
+            app:tint="@color/nexo_cyan"
+            android:contentDescription="@string/iot_activity_title" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvBulbName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:text="Philips WiZ Light"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/tvBulbIp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:text="IP: 192.168.1.100:38899"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvBulbMac"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:text="MAC: a8bb50..."
+                android:textColor="#5A6882"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchBulbPower"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:minWidth="48dp"
+            android:contentDescription="@string/iot_all_on" />
+    </LinearLayout>
+
+    <!-- Divider Line -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
+        android:background="#1E2A3A" />
+
+    <!-- Brightness Slider Section -->
+    <LinearLayout
+        android:id="@+id/layoutBrightness"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvBulbBrightness"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif"
+            android:text="Kecerahan: 100%"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp" />
+
+        <SeekBar
+            android:id="@+id/sbBulbBrightness"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:max="100"
+            android:min="10"
+            android:progress="100"
+            android:minHeight="48dp"
+            android:progressTint="@color/nexo_cyan"
+            android:thumbTint="@color/nexo_cyan" />
+    </LinearLayout>
+
+    <!-- Color Presets Horizontal Chips -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/chipWarmWhite"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_chip_preset"
+                android:minHeight="48dp"
+                android:gravity="center"
+                android:text="@string/iot_color_warm"
+                android:textColor="#FFD180"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/chipDaylight"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_chip_preset"
+                android:minHeight="48dp"
+                android:gravity="center"
+                android:text="@string/iot_color_daylight"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/chipCoolWhite"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_chip_preset"
+                android:minHeight="48dp"
+                android:gravity="center"
+                android:text="@string/iot_color_cool"
+                android:textColor="#B3E5FC"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/chipCyan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_chip_preset"
+                android:minHeight="48dp"
+                android:gravity="center"
+                android:text="@string/iot_color_cyan"
+                android:textColor="@color/nexo_cyan"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/chipEmerald"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_chip_preset"
+                android:minHeight="48dp"
+                android:gravity="center"
+                android:text="@string/iot_color_green"
+                android:textColor="@color/nexo_emerald"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/chipRed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_chip_preset"
+                android:minHeight="48dp"
+                android:gravity="center"
+                android:text="@string/iot_color_red"
+                android:textColor="@color/nexo_red"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/chipPurple"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_chip_preset"
+                android:minHeight="48dp"
+                android:gravity="center"
+                android:text="@string/iot_color_purple"
+                android:textColor="#CE93D8"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/chipAmber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_chip_preset"
+                android:minHeight="48dp"
+                android:gravity="center"
+                android:text="@string/iot_color_amber"
+                android:textColor="@color/nexo_amber"
+                android:textSize="11sp" />
+        </LinearLayout>
+    </HorizontalScrollView>
+</LinearLayout>
