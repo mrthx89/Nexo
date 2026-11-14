@@ -109,12 +109,19 @@ def test_parse_wiz_brightness_command():
     "nexo tampilkan iot",
     "nexo buka iot",
     "tampilkan lampu wiz",
+    "buka kontrol lampu",
+    "nexo buka kontrol lampu",
+    "kontrol lampu",
+    "buka setting lampu",
+    "buka kontrol ac",
+    "buka smart home",
+    "smart home",
 ])
 def test_parse_show_iot_command(cmd):
     res = parse_iot_command(cmd, is_sleeping=False)
     assert res is not None
     reply, expr, event = res
-    assert "Membuka daftar perangkat IoT studio Anda" in reply
+    assert "Membuka kontrol dan daftar perangkat IoT studio Anda" in reply
     assert expr == MascotExpression.SENANG
     assert event["type"] == "iot_dialog"
     assert event["action"] == "show_iot"

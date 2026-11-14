@@ -116,12 +116,34 @@ _SHOW_IOT_COMMANDS = {
     "buka iot",
     "daftar iot",
     "list iot",
+    "kelola iot",
+    "kontrol iot",
+    "kendali iot",
+    "panel iot",
+    "pengaturan iot",
+    "setting iot",
     "tampilkan lampu",
     "buka lampu",
     "daftar lampu",
     "list lampu",
     "kelola lampu",
-    "kelola iot",
+    "kontrol lampu",
+    "kendali lampu",
+    "panel lampu",
+    "pengaturan lampu",
+    "setting lampu",
+    "settingan lampu",
+    "buka kontrol lampu",
+    "buka kendali lampu",
+    "buka pengaturan lampu",
+    "buka setting lampu",
+    "buka settingan lampu",
+    "buka panel lampu",
+    "tampilkan kontrol lampu",
+    "tampilkan pengaturan lampu",
+    "tampilkan setting lampu",
+    "tampilkan settingan lampu",
+    "tampilkan panel lampu",
     "tampilkan perangkat iot",
     "buka perangkat iot",
     "daftar perangkat iot",
@@ -129,10 +151,41 @@ _SHOW_IOT_COMMANDS = {
     "tampilkan lampu wiz",
     "buka lampu wiz",
     "daftar lampu wiz",
+    "kontrol lampu wiz",
+    "buka kontrol lampu wiz",
     "tampilkan ac",
     "buka ac",
     "daftar ac",
+    "kontrol ac",
+    "kendali ac",
+    "panel ac",
+    "pengaturan ac",
+    "setting ac",
+    "settingan ac",
+    "buka kontrol ac",
+    "buka kendali ac",
+    "buka pengaturan ac",
+    "buka setting ac",
+    "buka settingan ac",
+    "buka panel ac",
+    "tampilkan kontrol ac",
+    "tampilkan pengaturan ac",
+    "tampilkan setting ac",
+    "tampilkan panel ac",
+    "buka smart home",
+    "tampilkan smart home",
+    "smart home",
+    "panel kontrol",
+    "buka panel kontrol",
+    "tampilkan panel kontrol",
 }
+
+_SHOW_IOT_PATTERNS = [
+    re.compile(r"^(buka|tampilkan|lihat|daftar|list|kelola)\s+(kontrol|kendali|panel|pengaturan|settingan|setting)?\s*(lampu|lighting|wiz|iot|ac|pendingin|smart\s*home|perangkat)", re.I),
+    re.compile(r"^(kontrol|kendali|panel|pengaturan|settingan|setting)\s+(lampu|lighting|wiz|iot|ac|pendingin|smart\s*home|perangkat)", re.I),
+    re.compile(r"^panel\s+kontrol(\s+(lampu|lighting|wiz|iot|ac|pendingin|smart\s*home|perangkat))?", re.I),
+    re.compile(r"^(smart\s*home|perangkat\s*iot)$", re.I),
+]
 
 _AC_ON_COMMANDS = {
     "nyalakan ac",
@@ -371,8 +424,13 @@ def parse_iot_command(
     if match:
         clean_body = re.sub(r"[.?!,]+$", "", match["body"].strip()).strip()
 
-    # 0. Show IoT / WiZ Lighting Activity
-    if clean in _SHOW_IOT_COMMANDS or clean_body in _SHOW_IOT_COMMANDS:
+    # 0. Show IoT / Smart Home / WiZ Lighting Activity
+    is_show_iot = (
+        clean in _SHOW_IOT_COMMANDS
+        or clean_body in _SHOW_IOT_COMMANDS
+        or any(p.search(clean) or p.search(clean_body) for p in _SHOW_IOT_PATTERNS)
+    )
+    if is_show_iot:
         state_snap = get_iot_state()
         event = {
             "type": "iot_dialog",
@@ -380,7 +438,7 @@ def parse_iot_command(
             "target": "iot_activity",
             "iot_state": state_snap,
         }
-        reply = "Membuka daftar perangkat IoT studio Anda, Pak Yanto."
+        reply = "Membuka kontrol dan daftar perangkat IoT studio Anda, Pak Yanto."
         return reply, MascotExpression.SENANG, event
 
     # 1. Combo: Studio Light + Focus Mode
