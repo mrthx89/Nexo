@@ -23,6 +23,7 @@ from .pipeline.speaker import SpeakerVerifier
 from .hermes.agent_bridge import create_hermes_bridge
 from .session_hub import hub
 from .portal import render_portal_html, load_mascot_svg
+from .models.messages import IotDialog
 from .wiz import wiz_controller, COLOR_MAP, SCENE_MAP
 from .polytron_ac import polytron_ac_controller
 from .iot import (
@@ -327,6 +328,16 @@ async def iot_control_endpoint(payload: IoTControlPayload, request: Request):
     elif action in ("ac_swing", "set_ac_swing") and payload.swing is not None:
         asyncio.create_task(polytron_ac_controller.async_set_swing(payload.swing, serial=payload.serial))
         speech_reply = "Swing AC diaktifkan." if payload.swing else "Swing AC dimatikan."
+    elif action in ("show_iot", "buka_kontrol_lampu", "buka_lampu", "kontrol_lampu", "setting_lampu", "buka_iot"):
+        speech_reply = "Membuka kontrol perangkat IoT dan lampu di layar, Pak Yanto."
+        expr = "senang"
+        appliance = hub.get_active_appliance()
+        if appliance:
+            await appliance.send_json_message(IotDialog(
+                action="show_iot",
+                target="iot_activity",
+                message=speech_reply,
+            ))
     elif action == "set_scene" and payload.scene:
         state_snap = update_iot_state(scene=payload.scene)
         asyncio.create_task(wiz_controller.set_scene(payload.scene, ip=payload.ip))

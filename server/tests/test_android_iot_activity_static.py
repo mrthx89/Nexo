@@ -151,3 +151,33 @@ def test_wiz_udp_manager_code_structure():
     assert "getSystemConfig" in content
     assert "getPilot" in content
     assert "setPilot" in content
+
+
+def test_iot_icon_drawables_exist():
+    drawables_dir = MAIN / "res/drawable"
+    expected_drawables = [
+        "ic_power_24.xml",
+        "ic_power_off_24.xml",
+        "ic_focus_24.xml",
+        "ic_relax_24.xml",
+        "ic_snowflake_24.xml",
+        "ic_water_drop_24.xml",
+        "ic_fan_24.xml",
+        "ic_auto_mode_24.xml",
+        "ic_swing_24.xml",
+        "ic_bolt_24.xml",
+        "ic_thermostat_24.xml",
+        "ic_chart_energy_24.xml",
+        "ic_minus_24.xml",
+        "ic_plus_24.xml",
+        "ic_lightbulb_24.xml",
+        "ic_ac_24.xml",
+        "ic_refresh_24.xml",
+        "ic_arrow_back_24.xml",
+    ]
+    for d in expected_drawables:
+        file_path = drawables_dir / d
+        assert file_path.exists(), f"Drawable {d} not found in {drawables_dir}"
+        root = ET.parse(file_path).getroot()
+        assert root.tag == "vector", f"Drawable {d} is not a valid vector drawable"
+

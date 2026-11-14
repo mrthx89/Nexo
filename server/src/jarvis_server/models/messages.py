@@ -102,5 +102,6 @@ class IotDialog(BaseModel):
     type: Literal["iot_dialog"] = "iot_dialog"
     action: str = "show_iot"
     target: str = "iot_activity"
+    focus: Optional[str] = "all"
     message: Optional[str] = None
     devices: Optional[list] = None

@@ -55,64 +55,112 @@
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchAcPower"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:minWidth="48dp"
+            android:contentDescription="@string/iot_ac_power_label" />
     </LinearLayout>
 
-    <!-- Telemetry Meter Row (Power, Room Temp, Energy) -->
+    <!-- Telemetry Meter Row (Power, Room Temp, Energy) with Icons -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:background="#141E28"
+        android:background="#121A26"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="8dp">
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp">
 
-        <TextView
-            android:id="@+id/tvAcPowerWatt"
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:fontFamily="sans-serif-medium"
             android:gravity="center"
-            android:text="@string/iot_ac_power_watt"
-            android:textColor="@color/nexo_cyan"
-            android:textSize="12sp" />
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_marginEnd="4dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_bolt_24"
+                app:tint="@color/nexo_cyan" />
+
+            <TextView
+                android:id="@+id/tvAcPowerWatt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/iot_ac_power_watt"
+                android:textColor="@color/nexo_cyan"
+                android:textSize="12sp" />
+        </LinearLayout>
 
         <View
             android:layout_width="1dp"
             android:layout_height="16dp"
-            android:background="#2E3C4E" />
+            android:background="#243346" />
 
-        <TextView
-            android:id="@+id/tvAcRoomTemp"
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:fontFamily="sans-serif-medium"
             android:gravity="center"
-            android:text="@string/iot_ac_room_temp"
-            android:textColor="@color/nexo_emerald"
-            android:textSize="12sp" />
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_marginEnd="4dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_thermostat_24"
+                app:tint="@color/nexo_emerald" />
+
+            <TextView
+                android:id="@+id/tvAcRoomTemp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/iot_ac_room_temp"
+                android:textColor="@color/nexo_emerald"
+                android:textSize="12sp" />
+        </LinearLayout>
 
         <View
             android:layout_width="1dp"
             android:layout_height="16dp"
-            android:background="#2E3C4E" />
+            android:background="#243346" />
 
-        <TextView
-            android:id="@+id/tvAcEnergy"
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:fontFamily="sans-serif-medium"
             android:gravity="center"
-            android:text="@string/iot_ac_energy"
-            android:textColor="@color/nexo_amber"
-            android:textSize="12sp" />
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_marginEnd="4dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_chart_energy_24"
+                app:tint="@color/nexo_amber" />
+
+            <TextView
+                android:id="@+id/tvAcEnergy"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/iot_ac_energy"
+                android:textColor="@color/nexo_amber"
+                android:textSize="12sp" />
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- Temperature Controller Stepper Row -->
+    <!-- Temperature Controller Stepper Row with Icons -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -127,9 +175,14 @@
             android:layout_height="48dp"
             android:minHeight="48dp"
             android:minWidth="48dp"
-            android:text="-"
+            android:contentDescription="Turunkan Suhu"
             android:textColor="@color/text_primary"
-            android:textSize="18sp"
+            app:cornerRadius="12dp"
+            app:icon="@drawable/ic_minus_24"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="20dp"
+            app:iconTint="@color/text_primary"
             app:strokeColor="#3A4D66" />
 
         <TextView
@@ -149,13 +202,18 @@
             android:layout_height="48dp"
             android:minHeight="48dp"
             android:minWidth="48dp"
-            android:text="+"
+            android:contentDescription="Naikkan Suhu"
             android:textColor="@color/text_primary"
-            android:textSize="18sp"
+            app:cornerRadius="12dp"
+            app:icon="@drawable/ic_plus_24"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="20dp"
+            app:iconTint="@color/text_primary"
             app:strokeColor="#3A4D66" />
     </LinearLayout>
 
-    <!-- Operation Modes Chips -->
+    <!-- Operation Modes Chips with Icons -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -165,60 +223,100 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAcModeCool"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="42dp"
             android:layout_marginEnd="4dp"
             android:layout_weight="1"
             android:backgroundTint="#0E2333"
-            android:minHeight="40dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minHeight="42dp"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
             android:text="@string/iot_ac_mode_cool"
             android:textColor="@color/nexo_cyan"
             android:textSize="10sp"
+            app:cornerRadius="8dp"
+            app:icon="@drawable/ic_snowflake_24"
+            app:iconGravity="textStart"
+            app:iconPadding="3dp"
+            app:iconSize="14dp"
+            app:iconTint="@color/nexo_cyan"
             app:strokeColor="@color/nexo_cyan"
             app:strokeWidth="1dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAcModeDry"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="42dp"
             android:layout_marginEnd="4dp"
             android:layout_weight="1"
-            android:backgroundTint="#1A2633"
-            android:minHeight="40dp"
+            android:backgroundTint="#141E2B"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minHeight="42dp"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
             android:text="@string/iot_ac_mode_dry"
             android:textColor="@color/text_secondary"
             android:textSize="10sp"
-            app:strokeColor="#3A4D66"
+            app:cornerRadius="8dp"
+            app:icon="@drawable/ic_water_drop_24"
+            app:iconGravity="textStart"
+            app:iconPadding="3dp"
+            app:iconSize="14dp"
+            app:iconTint="@color/text_secondary"
+            app:strokeColor="#2E3C4E"
             app:strokeWidth="1dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAcModeFan"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="42dp"
             android:layout_marginEnd="4dp"
             android:layout_weight="1"
-            android:backgroundTint="#1A2633"
-            android:minHeight="40dp"
+            android:backgroundTint="#141E2B"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minHeight="42dp"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
             android:text="@string/iot_ac_mode_fan"
             android:textColor="@color/text_secondary"
             android:textSize="10sp"
-            app:strokeColor="#3A4D66"
+            app:cornerRadius="8dp"
+            app:icon="@drawable/ic_fan_24"
+            app:iconGravity="textStart"
+            app:iconPadding="3dp"
+            app:iconSize="14dp"
+            app:iconTint="@color/text_secondary"
+            app:strokeColor="#2E3C4E"
             app:strokeWidth="1dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAcModeAuto"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="42dp"
             android:layout_weight="1"
-            android:backgroundTint="#1A2633"
-            android:minHeight="40dp"
+            android:backgroundTint="#141E2B"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minHeight="42dp"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
             android:text="@string/iot_ac_mode_auto"
             android:textColor="@color/text_secondary"
             android:textSize="10sp"
-            app:strokeColor="#3A4D66"
+            app:cornerRadius="8dp"
+            app:icon="@drawable/ic_auto_mode_24"
+            app:iconGravity="textStart"
+            app:iconPadding="3dp"
+            app:iconSize="14dp"
+            app:iconTint="@color/text_secondary"
+            app:strokeColor="#2E3C4E"
             app:strokeWidth="1dp" />
     </LinearLayout>
 
-    <!-- Fan Speed & Swing Row -->
+    <!-- Fan Speed & Swing Row with Icons -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -229,25 +327,41 @@
             android:id="@+id/btnAcFanSpeed"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="4dp"
+            android:layout_height="42dp"
+            android:layout_marginEnd="6dp"
             android:layout_weight="1"
-            android:minHeight="40dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minHeight="42dp"
             android:text="@string/iot_ac_fan_auto"
             android:textColor="@color/text_primary"
-            android:textSize="10sp"
-            app:strokeColor="#3A4D66" />
+            android:textSize="11sp"
+            app:cornerRadius="8dp"
+            app:icon="@drawable/ic_fan_24"
+            app:iconGravity="textStart"
+            app:iconPadding="6dp"
+            app:iconSize="15dp"
+            app:iconTint="@color/text_primary"
+            app:strokeColor="#2E3C4E" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAcSwingToggle"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="42dp"
             android:layout_weight="1"
-            android:minHeight="40dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minHeight="42dp"
             android:text="@string/iot_ac_swing"
             android:textColor="@color/text_primary"
-            android:textSize="10sp"
-            app:strokeColor="#3A4D66" />
+            android:textSize="11sp"
+            app:cornerRadius="8dp"
+            app:icon="@drawable/ic_swing_24"
+            app:iconGravity="textStart"
+            app:iconPadding="6dp"
+            app:iconSize="15dp"
+            app:iconTint="@color/text_primary"
+            app:strokeColor="#2E3C4E" />
     </LinearLayout>
 </LinearLayout>
