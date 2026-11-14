@@ -121,9 +121,16 @@ def test_parse_show_iot_command(cmd):
     res = parse_iot_command(cmd, is_sleeping=False)
     assert res is not None
     reply, expr, event = res
-    assert "Membuka kontrol dan daftar perangkat IoT studio Anda" in reply
+    assert "Membuka kontrol" in reply
+    assert "studio Anda, Pak Yanto." in reply
     assert expr == MascotExpression.SENANG
     assert event["type"] == "iot_dialog"
     assert event["action"] == "show_iot"
     assert event["target"] == "iot_activity"
+    if "ac" in cmd:
+        assert event["focus"] == "ac"
+    elif "lampu" in cmd or "wiz" in cmd:
+        assert event["focus"] == "lighting"
+    else:
+        assert event["focus"] == "all"
 

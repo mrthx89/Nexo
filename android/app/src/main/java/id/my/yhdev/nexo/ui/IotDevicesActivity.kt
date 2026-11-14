@@ -59,6 +59,28 @@ class IotDevicesActivity : AppCompatActivity() {
         initAcView()
         loadCachedBulbs()
         startWifiScan()
+        handleFocusIntent()
+    }
+
+    private fun handleFocusIntent() {
+        val focus = intent.getStringExtra("EXTRA_FOCUS") ?: "all"
+        val scrollView = findViewById<androidx.core.widget.NestedScrollView>(R.id.scrollBulbs) ?: return
+        scrollView.post {
+            when (focus) {
+                "ac" -> {
+                    val acCard = findViewById<View>(R.id.cardPolytronAc)
+                    if (acCard != null) {
+                        scrollView.smoothScrollTo(0, acCard.top)
+                    }
+                }
+                "lighting" -> {
+                    val bulbsContainer = findViewById<View>(R.id.layoutBulbsContainer)
+                    if (bulbsContainer != null) {
+                        scrollView.smoothScrollTo(0, bulbsContainer.top)
+                    }
+                }
+            }
+        }
     }
 
     private fun initViews() {

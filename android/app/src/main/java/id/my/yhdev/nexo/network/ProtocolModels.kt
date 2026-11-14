@@ -110,6 +110,7 @@ data class IotDialog(
     @SerializedName("type") val type: String = "iot_dialog",
     @SerializedName("action") val action: String = "show_iot",
     @SerializedName("target") val target: String = "iot_activity",
+    @SerializedName("focus") val focus: String? = null,
     @SerializedName("devices") val devices: List<WizBulbItem>? = null,
     @SerializedName("message") val message: String? = null
 )

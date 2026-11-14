@@ -84,6 +84,15 @@ _LIGHT_ON_COMMANDS = {
     "hidupkan lampu philips",
     "nyalakan lampu philips wiz",
     "hidupkan lampu philips wiz",
+    "nyalakan iot",
+    "hidupkan iot",
+    "iot on",
+    "aktifkan iot",
+    "pidupkan iot",
+    "hidupkan semua perangkat",
+    "nyalakan semua perangkat",
+    "hidupkan perangkat iot",
+    "nyalakan perangkat iot",
 }
 
 _LIGHT_OFF_COMMANDS = {
@@ -101,6 +110,14 @@ _LIGHT_OFF_COMMANDS = {
     "padamkan lampu philips",
     "matikan lampu philips wiz",
     "padamkan lampu philips wiz",
+    "matikan iot",
+    "padamkan iot",
+    "iot off",
+    "eot off",
+    "ert off",
+    "matikan semua perangkat",
+    "matikan perangkat",
+    "matikan perangkat iot",
 }
 
 _COMBO_FOCUS_LIGHT_COMMANDS = {
@@ -181,7 +198,7 @@ _SHOW_IOT_COMMANDS = {
 }
 
 _SHOW_IOT_PATTERNS = [
-    re.compile(r"^(buka|tampilkan|lihat|daftar|list|kelola)\s+(kontrol|kendali|panel|pengaturan|settingan|setting)?\s*(lampu|lighting|wiz|iot|ac|pendingin|smart\s*home|perangkat)", re.I),
+    re.compile(r"^(buka|pukak|tampilkan|lihat|daftar|list|kelola)\s+(kontrol|kendali|panel|pengaturan|settingan|setting)?\s*(lampu|lighting|wiz|iot|ac|pendingin|smart\s*home|perangkat)", re.I),
     re.compile(r"^(kontrol|kendali|panel|pengaturan|settingan|setting)\s+(lampu|lighting|wiz|iot|ac|pendingin|smart\s*home|perangkat)", re.I),
     re.compile(r"^panel\s+kontrol(\s+(lampu|lighting|wiz|iot|ac|pendingin|smart\s*home|perangkat))?", re.I),
     re.compile(r"^(smart\s*home|perangkat\s*iot)$", re.I),
@@ -431,14 +448,25 @@ def parse_iot_command(
         or any(p.search(clean) or p.search(clean_body) for p in _SHOW_IOT_PATTERNS)
     )
     if is_show_iot:
+        target_entity = clean_body or clean
+        if any(w in target_entity for w in ("ac", "pendingin", "suhu", "neuva")):
+            focus = "ac"
+            reply = "Membuka kontrol pendingin udara AC Polytron studio Anda, Pak Yanto."
+        elif any(w in target_entity for w in ("lampu", "lighting", "wiz")):
+            focus = "lighting"
+            reply = "Membuka kontrol lampu pintar Philips WiZ studio Anda, Pak Yanto."
+        else:
+            focus = "all"
+            reply = "Membuka kontrol dan daftar perangkat IoT studio Anda, Pak Yanto."
+
         state_snap = get_iot_state()
         event = {
             "type": "iot_dialog",
             "action": "show_iot",
             "target": "iot_activity",
+            "focus": focus,
             "iot_state": state_snap,
         }
-        reply = "Membuka kontrol dan daftar perangkat IoT studio Anda, Pak Yanto."
         return reply, MascotExpression.SENANG, event
 
     # 1. Combo: Studio Light + Focus Mode
@@ -515,6 +543,7 @@ def parse_iot_command(
 
     # 5. Studio Light OFF (including WiZ light)
     if clean in _LIGHT_OFF_COMMANDS or clean_body in _LIGHT_OFF_COMMANDS:
+        update_iot_state(device="ambient_backlight", state="off")
         state_snap = update_iot_state(device="studio_light", state="off")
         wiz_target = wiz_controller.get_target_ip()
         event = {
