@@ -1,21 +1,40 @@
 package id.my.yhdev.nexo.ui
 
+import android.content.Context
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.SeekBar
 import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.switchmaterial.SwitchMaterial
+import com.google.gson.Gson
+import com.google.gson.JsonParser
 import id.my.yhdev.nexo.R
 import id.my.yhdev.nexo.iot.DiscoveredBulb
 import id.my.yhdev.nexo.iot.WizUdpManager
+import id.my.yhdev.nexo.security.DeviceCredentialStore
 import kotlinx.coroutines.launch
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.MediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.Response
+import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 class IotDevicesActivity : AppCompatActivity() {
 
@@ -30,13 +49,20 @@ class IotDevicesActivity : AppCompatActivity() {
     private lateinit var btnScanWifi: MaterialButton
 
     // Polytron AC State
+    private var isAcAuthenticated: Boolean = false
     private var acPower: Boolean = false
     private var acTargetTemp: Int = 22
     private var acMode: String = "cool"
     private var acFanSpeed: String = "auto"
     private var acSwing: Boolean = false
+    private var acPowerWatt: Double = 0.0
+    private var acRoomTemp: Double = 26.0
+    private var acEnergyKwh: Double = 0.0
 
     // Polytron AC Views
+    private var layoutAcAuthWarning: View? = null
+    private var tvAcAuthStatus: TextView? = null
+    private var btnAcAuthLogin: MaterialButton? = null
     private var switchAcPower: SwitchMaterial? = null
     private var tvAcPowerWatt: TextView? = null
     private var tvAcRoomTemp: TextView? = null
@@ -48,6 +74,15 @@ class IotDevicesActivity : AppCompatActivity() {
     private var btnAcModeAuto: MaterialButton? = null
     private var btnAcFanSpeed: MaterialButton? = null
     private var btnAcSwingToggle: MaterialButton? = null
+
+    // Server Networking & Credentials
+    private var serverUrl: String = "https://nexo.yhdev.my.id"
+    private var deviceId: String = ""
+    private var deviceToken: String = ""
+    private val httpClient = OkHttpClient.Builder()
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(15, TimeUnit.SECONDS)
+        .build()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,9 +97,14 @@ class IotDevicesActivity : AppCompatActivity() {
         handleFocusIntent()
     }
 
+    override fun onResume() {
+        super.onResume()
+        fetchAcLiveStatus()
+    }
+
     private fun handleFocusIntent() {
         val focus = intent.getStringExtra("EXTRA_FOCUS") ?: "all"
-        val scrollView = findViewById<androidx.core.widget.NestedScrollView>(R.id.scrollBulbs) ?: return
+        val scrollView = findViewById<NestedScrollView>(R.id.scrollBulbs) ?: return
         scrollView.post {
             when (focus) {
                 "ac" -> {
@@ -103,6 +143,7 @@ class IotDevicesActivity : AppCompatActivity() {
             startWifiScan()
         }
 
+        // Global Batch Action Buttons
         findViewById<View>(R.id.btnAllOn).setOnClickListener {
             lifecycleScope.launch {
                 bulbsList.forEach { bulb ->
@@ -149,6 +190,23 @@ class IotDevicesActivity : AppCompatActivity() {
     }
 
     private fun initAcView() {
+        val prefs = getSharedPreferences("nexo_voice_prefs", Context.MODE_PRIVATE)
+        serverUrl = intent.getStringExtra("EXTRA_SERVER_URL")
+            ?: prefs.getString("server_url", null)
+            ?: "https://nexo.yhdev.my.id"
+        deviceId = intent.getStringExtra("EXTRA_DEVICE_ID")
+            ?: prefs.getString("device_id", null)
+            ?: ""
+        deviceToken = DeviceCredentialStore(this).read(serverUrl, deviceId) ?: ""
+
+        layoutAcAuthWarning = findViewById(R.id.layoutAcAuthWarning)
+        tvAcAuthStatus = findViewById(R.id.tvAcAuthStatus)
+        btnAcAuthLogin = findViewById(R.id.btnAcAuthLogin)
+
+        btnAcAuthLogin?.setOnClickListener {
+            showPolytronAuthDialog()
+        }
+
         switchAcPower = findViewById(R.id.switchAcPower)
         tvAcPowerWatt = findViewById(R.id.tvAcPowerWatt)
         tvAcRoomTemp = findViewById(R.id.tvAcRoomTemp)
@@ -164,18 +222,23 @@ class IotDevicesActivity : AppCompatActivity() {
         updateAcDisplay()
 
         switchAcPower?.setOnCheckedChangeListener { _, isChecked ->
-            acPower = isChecked
-            updateAcDisplay()
+            if (acPower != isChecked) {
+                acPower = isChecked
+                updateAcDisplay()
+                sendAcControl(if (isChecked) "ac_on" else "ac_off")
+            }
         }
 
         findViewById<View>(R.id.btnAcTempDown)?.setOnClickListener {
             acTargetTemp = (acTargetTemp - 1).coerceAtLeast(16)
             updateAcDisplay()
+            sendAcControl("ac_temp", mapOf("temp" to acTargetTemp))
         }
 
         findViewById<View>(R.id.btnAcTempUp)?.setOnClickListener {
             acTargetTemp = (acTargetTemp + 1).coerceAtMost(32)
             updateAcDisplay()
+            sendAcControl("ac_temp", mapOf("temp" to acTargetTemp))
         }
 
         btnAcModeCool?.setOnClickListener { setAcMode("cool") }
@@ -191,31 +254,43 @@ class IotDevicesActivity : AppCompatActivity() {
                 else -> "auto"
             }
             updateAcDisplay()
+            sendAcControl("ac_fan_speed", mapOf("fan_speed" to acFanSpeed))
         }
 
         btnAcSwingToggle?.setOnClickListener {
             acSwing = !acSwing
             updateAcDisplay()
+            sendAcControl("ac_swing", mapOf("swing" to acSwing))
         }
+
+        fetchAcLiveStatus()
     }
 
     private fun setAcMode(mode: String) {
         acMode = mode
         updateAcDisplay()
+        sendAcControl("ac_mode", mapOf("mode" to mode))
     }
 
     private fun updateAcDisplay() {
         tvAcTargetTemp?.text = "${acTargetTemp}°C"
         switchAcPower?.isChecked = acPower
 
-        if (acPower) {
-            tvAcPowerWatt?.text = "⚡ 310 W"
-            tvAcRoomTemp?.text = "🌡️ 24.5°C"
-            tvAcEnergy?.text = "📈 1.25 kWh"
+        if (!isAcAuthenticated) {
+            layoutAcAuthWarning?.visibility = View.VISIBLE
+            tvAcPowerWatt?.text = "Belum Login"
+            tvAcRoomTemp?.text = "-- °C"
+            tvAcEnergy?.text = "-- kWh"
         } else {
-            tvAcPowerWatt?.text = "⚡ 0 W"
-            tvAcRoomTemp?.text = "🌡️ 26.0°C"
-            tvAcEnergy?.text = "📈 1.25 kWh"
+            layoutAcAuthWarning?.visibility = View.GONE
+            if (acPower) {
+                val wattStr = if (acPowerWatt > 0) "${acPowerWatt.toInt()} W" else "Aktif"
+                tvAcPowerWatt?.text = "⚡ $wattStr"
+            } else {
+                tvAcPowerWatt?.text = "Standby (0 W)"
+            }
+            tvAcRoomTemp?.text = if (acRoomTemp > 0) "${String.format("%.1f", acRoomTemp)}°C" else "-- °C"
+            tvAcEnergy?.text = if (acEnergyKwh > 0) "${String.format("%.2f", acEnergyKwh)} kWh" else "0.00 kWh"
         }
 
         btnAcFanSpeed?.text = "Fan: ${acFanSpeed.replaceFirstChar { it.uppercase() }}"
@@ -225,7 +300,7 @@ class IotDevicesActivity : AppCompatActivity() {
         val cyanColor = 0xFF00E5FF.toInt()
         val mutedColor = 0xFF9E9E9E.toInt()
         val activeBg = 0xFF0E2333.toInt()
-        val inactiveBg = 0xFF1A2633.toInt()
+        val inactiveBg = 0xFF141E2B.toInt()
 
         btnAcModeCool?.let {
             it.setBackgroundColor(if (acMode == "cool") activeBg else inactiveBg)
@@ -243,6 +318,210 @@ class IotDevicesActivity : AppCompatActivity() {
             it.setBackgroundColor(if (acMode == "auto") activeBg else inactiveBg)
             it.setTextColor(if (acMode == "auto") cyanColor else mutedColor)
         }
+    }
+
+    private fun getHttpBaseUrl(): String {
+        return serverUrl
+            .replaceFirst(Regex("^ws://", RegexOption.IGNORE_CASE), "http://")
+            .replaceFirst(Regex("^wss://", RegexOption.IGNORE_CASE), "https://")
+            .trimEnd('/')
+    }
+
+    private fun fetchAcLiveStatus() {
+        val url = "${getHttpBaseUrl()}/iot/ac/status"
+        val reqBuilder = Request.Builder().url(url).get()
+        if (deviceId.isNotBlank()) reqBuilder.header("X-Device-Id", deviceId)
+        if (deviceToken.isNotBlank()) reqBuilder.header("Authorization", "Bearer $deviceToken")
+
+        httpClient.newCall(reqBuilder.build()).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                // Offline or unreachable
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val bodyStr = response.body()?.string() ?: ""
+                response.close()
+                runOnUiThread {
+                    runCatching {
+                        val json = JsonParser.parseString(bodyStr).asJsonObject
+                        val auth = json.get("authenticated")?.asBoolean ?: false
+                        isAcAuthenticated = auth
+                        val state = if (json.has("state") && !json.get("state").isJsonNull) json.getAsJsonObject("state") else null
+                        if (auth && state != null) {
+                            if (state.has("power")) acPower = state.get("power").asBoolean
+                            if (state.has("target_temp")) acTargetTemp = state.get("target_temp").asInt
+                            if (state.has("mode")) acMode = state.get("mode").asString
+                            if (state.has("fan_speed")) acFanSpeed = state.get("fan_speed").asString
+                            if (state.has("swing")) acSwing = state.get("swing").asBoolean
+                            if (state.has("power_watt")) acPowerWatt = state.get("power_watt").asDouble
+                            if (state.has("room_temp")) acRoomTemp = state.get("room_temp").asDouble
+                            if (state.has("energy_kwh")) acEnergyKwh = state.get("energy_kwh").asDouble
+                        }
+                        updateAcDisplay()
+                    }
+                }
+            }
+        })
+    }
+
+    private fun sendAcControl(action: String, extra: Map<String, Any> = emptyMap()) {
+        val baseUrl = getHttpBaseUrl()
+        val payload = mutableMapOf<String, Any>("action" to action)
+        payload.putAll(extra)
+        val jsonBody = Gson().toJson(payload)
+        val requestBody = RequestBody.create(
+            MediaType.parse("application/json; charset=utf-8"),
+            jsonBody
+        )
+        val reqBuilder = Request.Builder()
+            .url("$baseUrl/iot/control")
+            .post(requestBody)
+        if (deviceId.isNotBlank()) reqBuilder.header("X-Device-Id", deviceId)
+        if (deviceToken.isNotBlank()) reqBuilder.header("Authorization", "Bearer $deviceToken")
+
+        httpClient.newCall(reqBuilder.build()).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                runOnUiThread {
+                    Toast.makeText(this@IotDevicesActivity, "Gagal mengirim kontrol AC: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+            override fun onResponse(call: Call, response: Response) {
+                response.close()
+                runOnUiThread {
+                    fetchAcLiveStatus()
+                }
+            }
+        })
+    }
+
+    private fun showPolytronAuthDialog() {
+        val input = EditText(this).apply {
+            hint = "No. WhatsApp (misal: 08123456789)"
+            inputType = InputType.TYPE_CLASS_PHONE
+            setTextColor(0xFFFFFFFF.toInt())
+            setHintTextColor(0xFF888888.toInt())
+            background = null
+            setPadding(32, 24, 32, 24)
+        }
+
+        val container = FrameLayout(this).apply {
+            setPadding(40, 20, 40, 10)
+            addView(input)
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Login Polytron Fira Smart Home")
+            .setMessage("Masukkan nomor WhatsApp yang terdaftar pada aplikasi Polytron Smart Home untuk menerima kode verifikasi OTP.")
+            .setView(container)
+            .setPositiveButton("Kirim OTP") { _, _ ->
+                val phone = input.text.toString().trim()
+                if (phone.isNotEmpty()) {
+                    requestPolytronOtp(phone)
+                }
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    private fun requestPolytronOtp(phone: String) {
+        val baseUrl = getHttpBaseUrl()
+        val jsonBody = Gson().toJson(mapOf("phone" to phone))
+        val requestBody = RequestBody.create(
+            MediaType.parse("application/json; charset=utf-8"),
+            jsonBody
+        )
+        val reqBuilder = Request.Builder()
+            .url("$baseUrl/iot/ac/auth/request-otp")
+            .post(requestBody)
+        if (deviceId.isNotBlank()) reqBuilder.header("X-Device-Id", deviceId)
+        if (deviceToken.isNotBlank()) reqBuilder.header("Authorization", "Bearer $deviceToken")
+
+        httpClient.newCall(reqBuilder.build()).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                runOnUiThread {
+                    Toast.makeText(this@IotDevicesActivity, "Gagal request OTP: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+            override fun onResponse(call: Call, response: Response) {
+                val bodyStr = response.body()?.string() ?: ""
+                response.close()
+                runOnUiThread {
+                    val jsonObj = runCatching { JsonParser.parseString(bodyStr).asJsonObject }.getOrNull()
+                    if (jsonObj?.get("error")?.asString == "0") {
+                        showPolytronOtpVerifyDialog(phone)
+                    } else {
+                        val msg = jsonObj?.get("message")?.asString ?: bodyStr
+                        Toast.makeText(this@IotDevicesActivity, "Gagal: $msg", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        })
+    }
+
+    private fun showPolytronOtpVerifyDialog(phone: String) {
+        val input = EditText(this).apply {
+            hint = "Kode OTP (6 digit)"
+            inputType = InputType.TYPE_CLASS_NUMBER
+            setTextColor(0xFFFFFFFF.toInt())
+            setHintTextColor(0xFF888888.toInt())
+            background = null
+            setPadding(32, 24, 32, 24)
+        }
+
+        val container = FrameLayout(this).apply {
+            setPadding(40, 20, 40, 10)
+            addView(input)
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Verifikasi Kode OTP")
+            .setMessage("Kode OTP telah dikirimkan ke WhatsApp nomor $phone. Silakan masukkan kode tersebut:")
+            .setView(container)
+            .setPositiveButton("Verifikasi") { _, _ ->
+                val otp = input.text.toString().trim()
+                if (otp.isNotEmpty()) {
+                    verifyPolytronOtp(phone, otp)
+                }
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    private fun verifyPolytronOtp(phone: String, otp: String) {
+        val baseUrl = getHttpBaseUrl()
+        val jsonBody = Gson().toJson(mapOf("phone" to phone, "otp_code" to otp))
+        val requestBody = RequestBody.create(
+            MediaType.parse("application/json; charset=utf-8"),
+            jsonBody
+        )
+        val reqBuilder = Request.Builder()
+            .url("$baseUrl/iot/ac/auth/verify-otp")
+            .post(requestBody)
+        if (deviceId.isNotBlank()) reqBuilder.header("X-Device-Id", deviceId)
+        if (deviceToken.isNotBlank()) reqBuilder.header("Authorization", "Bearer $deviceToken")
+
+        httpClient.newCall(reqBuilder.build()).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                runOnUiThread {
+                    Toast.makeText(this@IotDevicesActivity, "Verifikasi gagal: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+            override fun onResponse(call: Call, response: Response) {
+                val bodyStr = response.body()?.string() ?: ""
+                response.close()
+                runOnUiThread {
+                    val jsonObj = runCatching { JsonParser.parseString(bodyStr).asJsonObject }.getOrNull()
+                    val token = jsonObj?.get("token")?.asString ?: jsonObj?.getAsJsonObject("data")?.get("token")?.asString
+                    if (!token.isNullOrEmpty()) {
+                        Toast.makeText(this@IotDevicesActivity, "🎉 Akun Polytron Smart Home terhubung!", Toast.LENGTH_LONG).show()
+                        fetchAcLiveStatus()
+                    } else {
+                        val msg = jsonObj?.get("message")?.asString ?: bodyStr
+                        Toast.makeText(this@IotDevicesActivity, "Verifikasi gagal: $msg", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        })
     }
 
     private fun loadCachedBulbs() {

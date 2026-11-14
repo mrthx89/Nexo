@@ -487,6 +487,33 @@ class NexoSessionClient:
             data={k: v for k, v in payload_data.items() if v is not None or k in ("action", "speak")},
         )
 
+    async def ac_request_otp(self, phone: str) -> Dict[str, Any]:
+        """Request WhatsApp OTP for Polytron Fira Smart Home cloud."""
+        return await self._async_http_request(
+            "/iot/ac/auth/request-otp",
+            method="POST",
+            data={"phone": phone},
+        )
+
+    async def ac_verify_otp(self, phone: str, otp_code: str) -> Dict[str, Any]:
+        """Verify WhatsApp OTP for Polytron Fira Smart Home cloud."""
+        return await self._async_http_request(
+            "/iot/ac/auth/verify-otp",
+            method="POST",
+            data={"phone": phone, "otp_code": otp_code},
+        )
+
+    async def ac_status(self, serial: Optional[str] = None) -> Dict[str, Any]:
+        """Get live telemetry and status of Polytron AC."""
+        endpoint = "/iot/ac/status"
+        if serial:
+            endpoint += f"?serial={urllib.parse.quote(serial)}"
+        return await self._async_http_request(endpoint, method="GET")
+
+    async def ac_devices(self) -> Dict[str, Any]:
+        """List paired Polytron devices."""
+        return await self._async_http_request("/iot/ac/devices", method="GET")
+
     async def stream_events(
         self,
         on_event: Callable[[Dict[str, Any]], None],

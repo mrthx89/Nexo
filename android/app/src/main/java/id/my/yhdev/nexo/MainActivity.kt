@@ -705,6 +705,8 @@ class MainActivity : AppCompatActivity(), NexoKioskService.ServiceCallback {
             if (dialog.action == "show_iot" || dialog.target == "iot_activity") {
                 val intent = Intent(this, id.my.yhdev.nexo.ui.IotDevicesActivity::class.java).apply {
                     putExtra("EXTRA_FOCUS", dialog.focus ?: "all")
+                    putExtra("EXTRA_SERVER_URL", currentServerUrl)
+                    putExtra("EXTRA_DEVICE_ID", deviceId)
                 }
                 startActivity(intent)
             }

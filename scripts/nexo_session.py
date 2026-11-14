@@ -334,6 +334,101 @@ async def cmd_iot(args: argparse.Namespace):
             return 1
 
 
+async def cmd_ac(args: argparse.Namespace):
+    client = create_client(args)
+    action = getattr(args, "action", "status") or "status"
+    action = action.lower().strip()
+    if action in ("status", "cek"):
+        res = await client.ac_status()
+        auth = res.get("authenticated", False)
+        phone = res.get("phone")
+        sn = res.get("default_serial")
+        st = res.get("state") or {}
+        print("\n═════════════════════════════════════════════════════")
+        print("       STATUS AC POLYTRON SMART NEUVA PRO")
+        print("═════════════════════════════════════════════════════")
+        print(f"  Autentikasi:        {'TERHUBUNG 🟢' if auth else 'BELUM LOGIN ⚠️'}")
+        if phone:
+            print(f"  Nomor Akun:         {phone}")
+        if sn:
+            print(f"  Serial Number:      {sn}")
+        if auth and st:
+            power_str = "MENYALA 🟢" if st.get("power") else "STANDBY ⚪"
+            print(f"  Daya Power:         {power_str}")
+            print(f"  Suhu Target:        {st.get('target_temp', 24)}°C")
+            print(f"  Suhu Ruang:         {st.get('room_temp', '-')}°C")
+            print(f"  Daya Aktif:         {int(st.get('power_watt', 0))} Watt")
+            print(f"  Mode Operasi:       {st.get('mode', 'cool').upper()}")
+            print(f"  Kecepatan Kipas:    {st.get('fan_speed', 'auto').upper()}")
+            print(f"  Swing Louver:       {'AKTIF' if st.get('swing') else 'MATI'}")
+            print(f"  Konsumsi Energi:    {st.get('energy_kwh', 0)} kWh")
+        elif not auth:
+            print("  Petunjuk Login:     Jalankan 'nexo ac request-otp <nomor_wa>'")
+        print("═════════════════════════════════════════════════════\n")
+        return 0
+    elif action in ("request-otp", "request_otp", "login"):
+        phone = getattr(args, "param1", None)
+        if not phone:
+            print("Error: Harap masukkan nomor WhatsApp terdaftar, contoh: nexo ac request-otp 08123456789")
+            return 1
+        res = await client.ac_request_otp(phone)
+        if res.get("error") == "0":
+            print(f"\n✅ Kode OTP berhasil dikirim ke WhatsApp {phone}!")
+            print(f"Silakan periksa WhatsApp dan jalankan:\n  nexo ac verify-otp {phone} <kode_otp>\n")
+        else:
+            print(f"\n❌ Gagal meminta OTP: {res.get('message', res)}\n")
+        return 0
+    elif action in ("verify-otp", "verify_otp", "verify"):
+        phone = getattr(args, "param1", None)
+        otp = getattr(args, "param2", None)
+        if not phone or not otp:
+            print("Error: Harap masukkan nomor dan kode OTP, contoh: nexo ac verify-otp 08123456789 123456")
+            return 1
+        res = await client.ac_verify_otp(phone, otp)
+        token = res.get("token") or res.get("data", {}).get("token")
+        if token:
+            print(f"\n🎉 Berhasil login dan verifikasi akun Polytron Smart Home!")
+            print(f"Kredensial disimpan aman di ~/.config/nexo-auth/polytron.json.")
+            st_res = await client.ac_status()
+            print(f"Serial AC Terdeteksi: {st_res.get('default_serial')}\n")
+        else:
+            print(f"\n❌ Verifikasi OTP gagal: {res.get('message', res)}\n")
+        return 0
+    elif action in ("on", "nyala", "nyalakan"):
+        res = await client.control_iot("ac_on")
+        print(f"\n✅ Perintah nyalakan AC dikirim.")
+        return 0
+    elif action in ("off", "mati", "matikan"):
+        res = await client.control_iot("ac_off")
+        print(f"\n✅ Perintah matikan AC dikirim.")
+        return 0
+    elif action in ("temp", "suhu"):
+        val = int(getattr(args, "param1", None) or 24)
+        res = await client.control_iot("ac_temp", temp=val)
+        print(f"\n✅ Suhu AC diatur ke {val}°C.")
+        return 0
+    elif action in ("mode",):
+        val = getattr(args, "param1", "cool")
+        res = await client.control_iot("ac_mode", mode=val)
+        print(f"\n✅ Mode AC diatur ke {val}.")
+        return 0
+    elif action in ("fan", "kipas"):
+        val = getattr(args, "param1", "auto")
+        res = await client.control_iot("ac_fan_speed", fan_speed=val)
+        print(f"\n✅ Kecepatan kipas AC diatur ke {val}.")
+        return 0
+    elif action in ("swing",):
+        val_str = (getattr(args, "param1", "on") or "on").lower()
+        swing_val = val_str in ("on", "1", "true", "aktif")
+        res = await client.control_iot("ac_swing", swing=swing_val)
+        print(f"\n✅ Swing AC diatur ke {'Aktif' if swing_val else 'Mati'}.")
+        return 0
+    else:
+        print(f"Perintah AC tidak dikenal: {action}")
+        print("Pilihan: status, login/request-otp, verify-otp, on, off, temp, mode, fan, swing")
+        return 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parent = argparse.ArgumentParser(add_help=False)
     parent.add_argument("--url", default=None, help=f"URL server Nexo (default: {DEFAULT_SERVER_URL})")
@@ -394,6 +489,13 @@ def build_parser() -> argparse.ArgumentParser:
     p_iot.add_argument("--ip", default=None, help="IP address spesifik lampu Philips WiZ")
     p_iot.add_argument("-s", "--speak", action="store_true", help="Picu output audio di appliance")
     p_iot.set_defaults(func=cmd_iot)
+
+    # ac
+    p_ac = subparsers.add_parser("ac", parents=[parent], help="Kontrol dan autentikasi AC Polytron Smart Neuva Pro via IoT23")
+    p_ac.add_argument("action", nargs="?", default="status", help="Aksi AC (status, login/request-otp, verify-otp, on, off, temp, mode, fan, swing)")
+    p_ac.add_argument("param1", nargs="?", default=None, help="Parameter 1 (no WhatsApp, suhu derajat, mode, atau fan speed)")
+    p_ac.add_argument("param2", nargs="?", default=None, help="Parameter 2 (kode OTP)")
+    p_ac.set_defaults(func=cmd_ac)
 
     return parser
 

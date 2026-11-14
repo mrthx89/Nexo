@@ -184,6 +184,17 @@ def verify_local_request(request: Request):
         raise HTTPException(status_code=403, detail="Endpoint restricted to local terminal CLI")
 
 
+def verify_local_or_appliance_request(request: Request):
+    """Enforce that endpoints are accessible by local host operator OR authenticated Nexo appliance."""
+    device_id = request.headers.get("x-device-id", "")
+    auth_header = request.headers.get("authorization", "")
+    if device_id and auth_header:
+        registry = DeviceRegistry(config.server.device_registry_path)
+        if registry.authenticate(device_id, auth_header):
+            return
+    verify_local_request(request)
+
+
 def is_local_websocket(websocket: WebSocket) -> bool:
     """Enforce that operator WebSocket endpoints are only accessible from the local host."""
     if websocket.headers.get("cf-connecting-ip") or websocket.headers.get("cf-ray"):
@@ -237,8 +248,8 @@ async def session_status_endpoint(request: Request):
 
 @app.get("/iot/status")
 async def iot_status_endpoint(request: Request):
-    """Retrieve real-time Linux telemetry and smart IoT studio device states."""
-    verify_local_request(request)
+    """Retrieve full live status and electrical telemetry of studio devices."""
+    verify_local_or_appliance_request(request)
     telemetry = get_system_telemetry()
     iot_state = get_iot_state()
     appliance = hub.get_active_appliance()
@@ -256,8 +267,8 @@ async def iot_status_endpoint(request: Request):
 
 @app.post("/iot/control")
 async def iot_control_endpoint(payload: IoTControlPayload, request: Request):
-    """Execute smart home / studio scene automation or update device states."""
-    verify_local_request(request)
+    """Control smart lighting (WiZ), AC (Polytron), or trigger smart scenes."""
+    verify_local_or_appliance_request(request)
     action = payload.action.lower().strip()
     speech_reply = None
     expr = payload.expression or "senang"
@@ -325,6 +336,11 @@ async def iot_control_endpoint(payload: IoTControlPayload, request: Request):
         asyncio.create_task(polytron_ac_controller.async_set_mode(payload.mode, serial=payload.serial))
         speech_reply = f"Mode AC diatur ke {payload.mode}."
         expr = "keren"
+    elif action in ("ac_fan_speed", "set_ac_fan_speed", "ac_fan") and payload.fan_speed:
+        state_snap = update_iot_state(device="ac", state="on")
+        asyncio.create_task(polytron_ac_controller.async_set_fan_speed(payload.fan_speed, serial=payload.serial))
+        speech_reply = f"Kecepatan kipas AC diatur ke {payload.fan_speed}."
+        expr = "senang"
     elif action in ("ac_swing", "set_ac_swing") and payload.swing is not None:
         asyncio.create_task(polytron_ac_controller.async_set_swing(payload.swing, serial=payload.serial))
         speech_reply = "Swing AC diaktifkan." if payload.swing else "Swing AC dimatikan."
@@ -369,7 +385,7 @@ async def iot_control_endpoint(payload: IoTControlPayload, request: Request):
 @app.post("/iot/ac/auth/request-otp")
 async def ac_request_otp_endpoint(payload: AcOtpRequestPayload, request: Request):
     """Request WhatsApp OTP from Polytron cloud service."""
-    verify_local_request(request)
+    verify_local_or_appliance_request(request)
     res = await asyncio.to_thread(polytron_ac_controller.request_wa_otp, payload.phone)
     return JSONResponse(res)
 
@@ -377,7 +393,7 @@ async def ac_request_otp_endpoint(payload: AcOtpRequestPayload, request: Request
 @app.post("/iot/ac/auth/verify-otp")
 async def ac_verify_otp_endpoint(payload: AcOtpVerifyPayload, request: Request):
     """Verify WhatsApp OTP and store session credentials."""
-    verify_local_request(request)
+    verify_local_or_appliance_request(request)
     res = await asyncio.to_thread(polytron_ac_controller.verify_otp, payload.phone, payload.otp_code)
     if res.get("token") or res.get("data", {}).get("token"):
         await asyncio.to_thread(polytron_ac_controller.fetch_devices)
@@ -387,7 +403,7 @@ async def ac_verify_otp_endpoint(payload: AcOtpVerifyPayload, request: Request):
 @app.get("/iot/ac/status")
 async def ac_status_endpoint(request: Request, serial: Optional[str] = None):
     """Get live state, temperature, and electrical telemetry of Polytron AC."""
-    verify_local_request(request)
+    verify_local_or_appliance_request(request)
     state = await polytron_ac_controller.async_refresh_state(serial=serial)
     return JSONResponse({
         "status": "ok",
@@ -401,7 +417,7 @@ async def ac_status_endpoint(request: Request, serial: Optional[str] = None):
 @app.get("/iot/ac/devices")
 async def ac_devices_endpoint(request: Request):
     """List all registered Polytron smart appliances."""
-    verify_local_request(request)
+    verify_local_or_appliance_request(request)
     devices = await asyncio.to_thread(polytron_ac_controller.fetch_devices)
     return JSONResponse({
         "status": "ok",

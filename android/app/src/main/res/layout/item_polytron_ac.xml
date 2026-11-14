@@ -61,6 +61,57 @@
             android:contentDescription="@string/iot_ac_power_label" />
     </LinearLayout>
 
+    <!-- Auth Warning / Pairing Banner (Shown when not authenticated) -->
+    <LinearLayout
+        android:id="@+id/layoutAcAuthWarning"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="#241B0D"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="10dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="8dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_bolt_24"
+            app:tint="@color/nexo_amber" />
+
+        <TextView
+            android:id="@+id/tvAcAuthStatus"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif"
+            android:text="Perlu WhatsApp OTP untuk menghubungkan akun Fira IoT."
+            android:textColor="@color/nexo_amber"
+            android:textSize="11sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAcAuthLogin"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:backgroundTint="@color/nexo_amber"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minHeight="36dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="Hubungkan"
+            android:textColor="#000000"
+            android:textSize="11sp"
+            app:cornerRadius="6dp" />
+    </LinearLayout>
+
     <!-- Telemetry Meter Row (Power, Room Temp, Energy) with Icons -->
     <LinearLayout
         android:layout_width="match_parent"
