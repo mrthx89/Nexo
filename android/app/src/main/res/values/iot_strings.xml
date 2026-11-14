@@ -25,6 +25,7 @@
     <!-- Polytron Smart Home Strings -->
     <string name="iot_ac_title">AC Polytron Smart Neuva Pro</string>
     <string name="iot_ac_subtitle">IoT23 Fira Cloud • PAC-05/09VZI</string>
+    <string name="iot_ac_power_label">Daya Listrik AC</string>
     <string name="iot_ac_power_watt">⚡ 0 W</string>
     <string name="iot_ac_room_temp">🌡️ --°C</string>
     <string name="iot_ac_energy">📈 0.0 kWh</string>

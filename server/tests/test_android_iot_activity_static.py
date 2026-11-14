@@ -143,6 +143,13 @@ def test_iot_devices_activity_code_structure():
     assert "R.layout.activity_iot_devices" in content
     assert "WizUdpManager" in content
     assert "startWifiScan()" in content
+    # OkHttp 4 Kotlin extension conventions
+    assert "response.body()" not in content, "Deprecated response.body() produces Kotlin compilation error"
+    assert "MediaType.parse(" not in content, "Deprecated MediaType.parse() produces Kotlin compilation error"
+    assert "RequestBody.create(" not in content, "Deprecated RequestBody.create() produces Kotlin compilation error"
+    assert ".toMediaTypeOrNull()" in content
+    assert ".toRequestBody(" in content
+    assert "response.body?." in content
 
 
 def test_wiz_udp_manager_code_structure():
@@ -183,4 +190,26 @@ def test_iot_icon_drawables_exist():
         assert file_path.exists(), f"Drawable {d} not found in {drawables_dir}"
         root = ET.parse(file_path).getroot()
         assert root.tag == "vector", f"Drawable {d} is not a valid vector drawable"
+
+
+def test_iot_layout_string_resources_exist():
+    import re
+
+    res_dir = MAIN / "res"
+    strings = set()
+    for values_file in (res_dir / "values").glob("*.xml"):
+        root = ET.parse(values_file).getroot()
+        for string_elem in root.findall("string"):
+            name = string_elem.get("name")
+            if name:
+                strings.add(name)
+
+    assert "iot_ac_power_label" in strings, "Missing @string/iot_ac_power_label in res/values"
+
+    for layout_name in ["activity_iot_devices.xml", "item_polytron_ac.xml", "item_wiz_bulb.xml"]:
+        layout_file = res_dir / "layout" / layout_name
+        content = layout_file.read_text()
+        for match in re.findall(r"@string/([a-zA-Z0-9_]+)", content):
+            assert match in strings, f"Missing string resource @string/{match} referenced in {layout_name}"
+
 

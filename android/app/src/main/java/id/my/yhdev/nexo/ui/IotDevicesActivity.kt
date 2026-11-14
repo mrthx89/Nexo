@@ -28,10 +28,10 @@ import id.my.yhdev.nexo.security.DeviceCredentialStore
 import kotlinx.coroutines.launch
 import okhttp3.Call
 import okhttp3.Callback
-import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
 import java.util.concurrent.TimeUnit
@@ -197,7 +197,14 @@ class IotDevicesActivity : AppCompatActivity() {
         deviceId = intent.getStringExtra("EXTRA_DEVICE_ID")
             ?: prefs.getString("device_id", null)
             ?: ""
-        deviceToken = DeviceCredentialStore(this).read(serverUrl, deviceId) ?: ""
+        val wssUrl = if (serverUrl.startsWith("http://")) {
+            serverUrl.replaceFirst("http://", "ws://")
+        } else if (serverUrl.startsWith("https://")) {
+            serverUrl.replaceFirst("https://", "wss://")
+        } else {
+            serverUrl
+        }
+        deviceToken = DeviceCredentialStore(this).read(wssUrl, deviceId) ?: ""
 
         layoutAcAuthWarning = findViewById(R.id.layoutAcAuthWarning)
         tvAcAuthStatus = findViewById(R.id.tvAcAuthStatus)
@@ -339,7 +346,7 @@ class IotDevicesActivity : AppCompatActivity() {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                val bodyStr = response.body()?.string() ?: ""
+                val bodyStr = response.body?.string() ?: ""
                 response.close()
                 runOnUiThread {
                     runCatching {
@@ -369,10 +376,8 @@ class IotDevicesActivity : AppCompatActivity() {
         val payload = mutableMapOf<String, Any>("action" to action)
         payload.putAll(extra)
         val jsonBody = Gson().toJson(payload)
-        val requestBody = RequestBody.create(
-            MediaType.parse("application/json; charset=utf-8"),
-            jsonBody
-        )
+        val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
+        val requestBody = jsonBody.toRequestBody(mediaType)
         val reqBuilder = Request.Builder()
             .url("$baseUrl/iot/control")
             .post(requestBody)
@@ -426,10 +431,8 @@ class IotDevicesActivity : AppCompatActivity() {
     private fun requestPolytronOtp(phone: String) {
         val baseUrl = getHttpBaseUrl()
         val jsonBody = Gson().toJson(mapOf("phone" to phone))
-        val requestBody = RequestBody.create(
-            MediaType.parse("application/json; charset=utf-8"),
-            jsonBody
-        )
+        val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
+        val requestBody = jsonBody.toRequestBody(mediaType)
         val reqBuilder = Request.Builder()
             .url("$baseUrl/iot/ac/auth/request-otp")
             .post(requestBody)
@@ -443,7 +446,7 @@ class IotDevicesActivity : AppCompatActivity() {
                 }
             }
             override fun onResponse(call: Call, response: Response) {
-                val bodyStr = response.body()?.string() ?: ""
+                val bodyStr = response.body?.string() ?: ""
                 response.close()
                 runOnUiThread {
                     val jsonObj = runCatching { JsonParser.parseString(bodyStr).asJsonObject }.getOrNull()
@@ -490,10 +493,8 @@ class IotDevicesActivity : AppCompatActivity() {
     private fun verifyPolytronOtp(phone: String, otp: String) {
         val baseUrl = getHttpBaseUrl()
         val jsonBody = Gson().toJson(mapOf("phone" to phone, "otp_code" to otp))
-        val requestBody = RequestBody.create(
-            MediaType.parse("application/json; charset=utf-8"),
-            jsonBody
-        )
+        val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
+        val requestBody = jsonBody.toRequestBody(mediaType)
         val reqBuilder = Request.Builder()
             .url("$baseUrl/iot/ac/auth/verify-otp")
             .post(requestBody)
@@ -507,7 +508,7 @@ class IotDevicesActivity : AppCompatActivity() {
                 }
             }
             override fun onResponse(call: Call, response: Response) {
-                val bodyStr = response.body()?.string() ?: ""
+                val bodyStr = response.body?.string() ?: ""
                 response.close()
                 runOnUiThread {
                     val jsonObj = runCatching { JsonParser.parseString(bodyStr).asJsonObject }.getOrNull()
