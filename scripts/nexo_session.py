@@ -273,6 +273,14 @@ async def cmd_iot(args: argparse.Namespace):
         print(f"  Philips WiZ IP:     {wiz.get('configured_ip') or 'Tidak terkonfigurasi (auto-discovery)'}")
         if wiz_st:
             print(f"  WiZ Status:         {wiz_st.get('status_str', 'OFF')} (Dimming: {wiz_st.get('dimming')}%)")
+        ac = iot.get("ac", {})
+        ac_st = ac.get("state") or {}
+        if ac.get("authenticated"):
+            print(f"  Polytron AC:        {'MENYALA 🟢' if ac_st.get('power') else 'STANDBY ⚪'} ({ac_st.get('target_temp', 24)}°C, Mode: {ac_st.get('mode', 'cool')})")
+            if ac_st.get("power_watt"):
+                print(f"  Daya Aktif AC:      {int(ac_st.get('power_watt', 0))} Watt | Suhu Ruang: {ac_st.get('room_temp')}°C")
+        else:
+            print("  Polytron AC:        Tersedia (Perlu OTP WhatsApp via /iot/ac/auth/request-otp)")
         print("─────────────────────────────────────────────────────")
         print(f"  CPU Load (1m, 5m):  {telem.get('cpu_load_1m')}, {telem.get('cpu_load_5m')}")
         print(f"  RAM Terpakai:       {telem.get('ram_used_percent')}% ({telem.get('ram_available_mb')} MB free / {telem.get('ram_total_mb')} MB)")
@@ -297,6 +305,15 @@ async def cmd_iot(args: argparse.Namespace):
                         payload_kwargs["dimming"] = int(val)
                     except ValueError:
                         pass
+                elif action in ("ac_temp", "suhu_ac"):
+                    action = "ac_temp"
+                    try:
+                        payload_kwargs["temp"] = int(val)
+                    except ValueError:
+                        pass
+                elif action in ("ac_mode", "mode_ac"):
+                    action = "ac_mode"
+                    payload_kwargs["mode"] = val
                 elif action in ("scene", "mode"):
                     payload_kwargs["scene"] = val
             if ip:
@@ -373,7 +390,7 @@ def build_parser() -> argparse.ArgumentParser:
     # iot
     p_iot = subparsers.add_parser("iot", parents=[parent], help="Kontrol IoT smart studio, Philips WiZ, dan telemetri server")
     p_iot.add_argument("action", nargs="?", default="status", help="Aksi IoT (status, focus_mode, relax_mode, light_on, light_off, color, dimming, discover)")
-    p_iot.add_argument("--value", "-v", default=None, help="Nilai parameter (nama warna, level kecerahan %, atau scene)")
+    p_iot.add_argument("--value", "-v", default=None, help="Nilai parameter (nama warna, level kecerahan persen, suhu derajat, atau scene)")
     p_iot.add_argument("--ip", default=None, help="IP address spesifik lampu Philips WiZ")
     p_iot.add_argument("-s", "--speak", action="store_true", help="Picu output audio di appliance")
     p_iot.set_defaults(func=cmd_iot)

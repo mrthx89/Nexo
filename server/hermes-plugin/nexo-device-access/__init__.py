@@ -134,6 +134,55 @@ def _handle_light(raw_args, *, source=None, platform=None):
         return f"Gagal mengontrol lampu: {e}"
 
 
+def _handle_ac(raw_args, *, source=None, platform=None):
+    """Command Polytron Smart Neuva Pro AC."""
+    if source is None or platform != 'telegram':
+        return 'Perintah ini hanya tersedia melalui chat privat Telegram pemilik.'
+    arg = (raw_args or '').strip().lower()
+    if not arg:
+        return "Penggunaan: <code>/nexo_ac &lt;on|off|temp 22|status&gt;</code>"
+    server_url = os.environ.get('NEXO_SERVER_URL', 'http://127.0.0.1:8766')
+    try:
+        if arg in ("status", "cek"):
+            with urlopen(f'{server_url}/iot/ac/status', timeout=10) as resp:
+                data = json.load(resp)
+            st = data.get("state")
+            if not data.get("authenticated"):
+                return "⚠️ AC Polytron belum terautentikasi WhatsApp OTP."
+            if st and st.get("power"):
+                return (
+                    "❄️ <b>STATUS AC POLYTRON SMART NEUVA PRO</b>\n\n"
+                    f"• <b>Status:</b> MENYALA 🟢\n"
+                    f"• <b>Suhu Target:</b> {st.get('target_temp', 24)}°C\n"
+                    f"• <b>Suhu Ruang:</b> {st.get('room_temp')}°C\n"
+                    f"• <b>Daya Aktif:</b> {int(st.get('power_watt', 0))} Watt\n"
+                    f"• <b>Mode:</b> {st.get('mode', 'cool')}\n"
+                    f"• <b>Fan Speed:</b> {st.get('fan_speed', 'auto')}"
+                )
+            return "❄️ AC Polytron saat ini dalam kondisi Standby (OFF) ⚪."
+
+        req_body = {"action": "ac_on"}
+        if arg in ("off", "mati", "matikan"):
+            req_body = {"action": "ac_off"}
+        elif arg.isdigit():
+            req_body = {"action": "ac_temp", "temp": int(arg)}
+        elif arg.startswith("temp"):
+            parts = arg.split()
+            if len(parts) > 1 and parts[1].isdigit():
+                req_body = {"action": "ac_temp", "temp": int(parts[1])}
+        elif arg in ("cool", "dingin", "dry", "kering", "fan", "kipas", "auto"):
+            req_body = {"action": "ac_mode", "mode": arg}
+
+        req = Request(f'{server_url}/iot/control', data=json.dumps(req_body).encode(), headers={'Content-Type': 'application/json'})
+        with urlopen(req, timeout=10) as resp:
+            data = json.load(resp)
+        if data.get('status') == 'ok':
+            return f"❄️ AC Polytron diatur ({arg})."
+        return "⚠️ Gagal mengatur AC."
+    except Exception as e:
+        return f"Gagal mengontrol AC: {e}"
+
+
 def register(ctx):
     # Token management
     ctx.register_command('nexo-token', handler=_handle_token,
@@ -166,6 +215,14 @@ def register(ctx):
     ctx.register_command('nexo_light', handler=_handle_light,
                          description='Kontrol lampu pintar Philips WiZ rumah.',
                          args_hint='<on|off|warna|dimming>')
+
+    # Smart AC control
+    ctx.register_command('nexo-ac', handler=_handle_ac,
+                         description='Kontrol AC Polytron Smart Neuva Pro.',
+                         args_hint='<on|off|temp 22|status>')
+    ctx.register_command('nexo_ac', handler=_handle_ac,
+                         description='Kontrol AC Polytron Smart Neuva Pro.',
+                         args_hint='<on|off|temp 22|status>')
 
     # Help
     ctx.register_command('nexo-help', handler=_handle_help,

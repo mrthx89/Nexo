@@ -13,6 +13,7 @@ from typing import Any, Dict, Optional, Tuple
 
 from .mascot import MascotExpression, _COMMAND
 from .wiz import wiz_controller, COLOR_MAP, SCENE_MAP
+from .polytron_ac import polytron_ac_controller, HVAC_MODE_TO_POLYTRON, FAN_SPEED_TO_POLYTRON
 
 logger = logging.getLogger(__name__)
 
@@ -128,6 +129,53 @@ _SHOW_IOT_COMMANDS = {
     "tampilkan lampu wiz",
     "buka lampu wiz",
     "daftar lampu wiz",
+    "tampilkan ac",
+    "buka ac",
+    "daftar ac",
+}
+
+_AC_ON_COMMANDS = {
+    "nyalakan ac",
+    "hidupkan ac",
+    "nyalakan ac studio",
+    "hidupkan ac studio",
+    "nyalakan ac kamar",
+    "hidupkan ac kamar",
+    "nyalakan ac polytron",
+    "hidupkan ac polytron",
+    "nyalakan pendingin",
+    "hidupkan pendingin",
+    "nyalakan pendingin ruangan",
+    "hidupkan pendingin ruangan",
+}
+
+_AC_OFF_COMMANDS = {
+    "matikan ac",
+    "padamkan ac",
+    "matikan ac studio",
+    "padamkan ac studio",
+    "matikan ac kamar",
+    "padamkan ac kamar",
+    "matikan ac polytron",
+    "padamkan ac polytron",
+    "matikan pendingin",
+    "matikan pendingin ruangan",
+    "padamkan pendingin ruangan",
+}
+
+_AC_STATUS_COMMANDS = {
+    "cek ac",
+    "status ac",
+    "kondisi ac",
+    "suhu ac",
+    "daya ac",
+    "watt ac",
+    "berapa watt ac",
+    "berapa watt ac sekarang",
+    "konsumsi ac",
+    "konsumsi listrik ac",
+    "cek ac polytron",
+    "status ac polytron",
 }
 
 
@@ -135,7 +183,10 @@ def get_iot_state() -> Dict[str, Any]:
     """Return a snapshot of the current smart studio state."""
     wiz_target = wiz_controller.get_target_ip()
     wiz_st = wiz_controller.states.get(wiz_target) if wiz_target else None
-    
+
+    ac_sn = polytron_ac_controller.default_serial
+    ac_st = polytron_ac_controller.states.get(ac_sn) if ac_sn else None
+
     return {
         "active_scene": _IOT_STATE["active_scene"],
         "devices": dict(_IOT_STATE["devices"]),
@@ -143,6 +194,12 @@ def get_iot_state() -> Dict[str, Any]:
             "configured_ip": wiz_target,
             "state": wiz_st.to_dict() if wiz_st else None,
             "registered_bulbs": list(wiz_controller.bulbs.keys()),
+        },
+        "ac": {
+            "authenticated": polytron_ac_controller.is_authenticated(),
+            "default_serial": ac_sn,
+            "state": ac_st.to_dict() if ac_st else None,
+            "device_count": len(polytron_ac_controller.devices),
         },
         "last_updated": _IOT_STATE["last_updated"],
     }
@@ -454,6 +511,90 @@ def parse_iot_command(
             }
             reply = f"Kecerahan lampu diatur ke {pct} persen, Pak Yanto."
             return reply, MascotExpression.SENANG, event
+
+    # 5d. Polytron AC Power ON
+    if clean in _AC_ON_COMMANDS or clean_body in _AC_ON_COMMANDS:
+        _safe_create_task(polytron_ac_controller.async_turn_on())
+        state_snap = update_iot_state(device="ac", state="on")
+        event = {
+            "type": "iot_control",
+            "action": "ac_turn_on",
+            "iot_state": state_snap,
+            "device": "ac",
+        }
+        reply = "AC Polytron Smart Neuva Pro telah dinyalakan. Ruangan akan segera sejuk, Pak Yanto."
+        return reply, MascotExpression.SENANG, event
+
+    # 5e. Polytron AC Power OFF
+    if clean in _AC_OFF_COMMANDS or clean_body in _AC_OFF_COMMANDS:
+        _safe_create_task(polytron_ac_controller.async_turn_off())
+        state_snap = update_iot_state(device="ac", state="off")
+        event = {
+            "type": "iot_control",
+            "action": "ac_turn_off",
+            "iot_state": state_snap,
+            "device": "ac",
+        }
+        reply = "AC telah dimatikan."
+        return reply, MascotExpression.NETRAL, event
+
+    # 5f. Polytron AC Set Temperature (e.g. "setel suhu ac 22 derajat", "atur ac 20", "suhu ac 24 derajat")
+    ac_temp_match = re.search(
+        r"(?:atur|setel|ubah|set|bikin)?\s*(?:suhu\s+)?ac\s+(?:ke|menjadi|jadi)?\s*(\d{2})\s*(?:derajat|celsius|c)?",
+        clean_body,
+    )
+    if ac_temp_match:
+        temp_val = int(ac_temp_match.group(1))
+        if 16 <= temp_val <= 32:
+            _safe_create_task(polytron_ac_controller.async_set_temperature(temp_val))
+            state_snap = update_iot_state(device="ac", state="on")
+            event = {
+                "type": "iot_control",
+                "action": "ac_set_temperature",
+                "target_temp": temp_val,
+                "iot_state": state_snap,
+                "device": "ac",
+            }
+            reply = f"Suhu AC diatur ke {temp_val} derajat Celsius, Pak Yanto."
+            return reply, MascotExpression.SENANG, event
+
+    # 5g. Polytron AC Mode (e.g. "ac mode dingin", "mode ac dingin", "setel ac ke mode cool")
+    ac_mode_match = re.search(
+        r"(?:mode\s+ac|ac\s+mode)\s+(dingin|cool|dry|kering|fan|kipas|auto|otomatis)",
+        clean_body,
+    )
+    if ac_mode_match:
+        mode_val = ac_mode_match.group(1).strip()
+        _safe_create_task(polytron_ac_controller.async_set_mode(mode_val))
+        state_snap = update_iot_state(device="ac", state="on")
+        event = {
+            "type": "iot_control",
+            "action": "ac_set_mode",
+            "mode": mode_val,
+            "iot_state": state_snap,
+            "device": "ac",
+        }
+        reply = f"Mode AC diubah menjadi {mode_val}, Pak Yanto."
+        return reply, MascotExpression.KEREN, event
+
+    # 5h. Polytron AC Status / Telemetry Check
+    if clean in _AC_STATUS_COMMANDS or clean_body in _AC_STATUS_COMMANDS:
+        sn = polytron_ac_controller.default_serial
+        st = polytron_ac_controller.states.get(sn)
+        if st and st.power:
+            room_str = f"Suhu ruangan saat ini {st.room_temp:.1f} derajat. " if st.room_temp is not None else ""
+            watt_str = f"Daya aktif AC {int(st.power_watt)} Watt." if st.power_watt > 0 else ""
+            reply = f"AC Polytron menyala di {st.target_temp} derajat, mode {st.mode}. {room_str}{watt_str}".strip()
+        elif st and not st.power:
+            reply = "AC Polytron saat ini dalam kondisi mati (standby)."
+        else:
+            reply = "AC Polytron Smart Neuva Pro terhubung ke sistem Nexo."
+        event = {
+            "type": "iot_telemetry",
+            "action": "ac_status",
+            "ac_state": st.to_dict() if st else None,
+        }
+        return reply, MascotExpression.SENANG, event
 
     # 6. Server Telemetry & Health Check
     if clean in _SERVER_STATUS_COMMANDS or clean_body in _SERVER_STATUS_COMMANDS:

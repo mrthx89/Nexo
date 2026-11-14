@@ -24,6 +24,7 @@ from .hermes.agent_bridge import create_hermes_bridge
 from .session_hub import hub
 from .portal import render_portal_html, load_mascot_svg
 from .wiz import wiz_controller, COLOR_MAP, SCENE_MAP
+from .polytron_ac import polytron_ac_controller
 from .iot import (
     get_system_telemetry,
     get_iot_state,
@@ -126,9 +127,22 @@ class IoTControlPayload(BaseModel):
     color: Optional[str] = None
     temp: Optional[int] = None
     ip: Optional[str] = None
+    serial: Optional[str] = None
+    mode: Optional[str] = None
+    swing: Optional[bool] = None
+    fan_speed: Optional[str] = None
     speak: bool = False
     speech_text: Optional[str] = None
     expression: Optional[str] = None
+
+
+class AcOtpRequestPayload(BaseModel):
+    phone: str
+
+
+class AcOtpVerifyPayload(BaseModel):
+    phone: str
+    otp_code: str
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -246,6 +260,7 @@ async def iot_control_endpoint(payload: IoTControlPayload, request: Request):
     action = payload.action.lower().strip()
     speech_reply = None
     expr = payload.expression or "senang"
+    state_snap = get_iot_state()
 
     if action in ("focus_mode", "mode_fokus"):
         state_snap = update_iot_state(scene="focus", device="ambient_backlight", state="focus_cyan")
@@ -285,9 +300,33 @@ async def iot_control_endpoint(payload: IoTControlPayload, request: Request):
         asyncio.create_task(wiz_controller.set_brightness(dim_val, ip=payload.ip))
         speech_reply = f"Kecerahan lampu diatur ke {dim_val} persen."
         expr = "senang"
-    elif action == "set_device" and payload.device and payload.state:
+    elif action in ("set_device") and payload.device and payload.state:
         state_snap = update_iot_state(device=payload.device, state=payload.state)
         speech_reply = f"Perangkat {payload.device} diatur ke {payload.state}."
+    elif action in ("ac_on", "nyalakan_ac"):
+        state_snap = update_iot_state(device="ac", state="on")
+        asyncio.create_task(polytron_ac_controller.async_turn_on(serial=payload.serial))
+        speech_reply = "AC Polytron Smart Neuva Pro telah dinyalakan."
+        expr = "senang"
+    elif action in ("ac_off", "matikan_ac"):
+        state_snap = update_iot_state(device="ac", state="off")
+        asyncio.create_task(polytron_ac_controller.async_turn_off(serial=payload.serial))
+        speech_reply = "AC telah dimatikan."
+        expr = "netral"
+    elif action in ("ac_temp", "set_ac_temp"):
+        target_t = payload.temp or 24
+        state_snap = update_iot_state(device="ac", state="on")
+        asyncio.create_task(polytron_ac_controller.async_set_temperature(target_t, serial=payload.serial))
+        speech_reply = f"Suhu AC diatur ke {target_t} derajat Celsius."
+        expr = "senang"
+    elif action in ("ac_mode", "set_ac_mode") and payload.mode:
+        state_snap = update_iot_state(device="ac", state="on")
+        asyncio.create_task(polytron_ac_controller.async_set_mode(payload.mode, serial=payload.serial))
+        speech_reply = f"Mode AC diatur ke {payload.mode}."
+        expr = "keren"
+    elif action in ("ac_swing", "set_ac_swing") and payload.swing is not None:
+        asyncio.create_task(polytron_ac_controller.async_set_swing(payload.swing, serial=payload.serial))
+        speech_reply = "Swing AC diaktifkan." if payload.swing else "Swing AC dimatikan."
     elif action == "set_scene" and payload.scene:
         state_snap = update_iot_state(scene=payload.scene)
         asyncio.create_task(wiz_controller.set_scene(payload.scene, ip=payload.ip))
@@ -313,6 +352,50 @@ async def iot_control_endpoint(payload: IoTControlPayload, request: Request):
         "action": action,
         "iot_state": state_snap,
         "spoken": bool(payload.speak and speech_reply),
+    })
+
+
+@app.post("/iot/ac/auth/request-otp")
+async def ac_request_otp_endpoint(payload: AcOtpRequestPayload, request: Request):
+    """Request WhatsApp OTP from Polytron cloud service."""
+    verify_local_request(request)
+    res = await asyncio.to_thread(polytron_ac_controller.request_wa_otp, payload.phone)
+    return JSONResponse(res)
+
+
+@app.post("/iot/ac/auth/verify-otp")
+async def ac_verify_otp_endpoint(payload: AcOtpVerifyPayload, request: Request):
+    """Verify WhatsApp OTP and store session credentials."""
+    verify_local_request(request)
+    res = await asyncio.to_thread(polytron_ac_controller.verify_otp, payload.phone, payload.otp_code)
+    if res.get("token") or res.get("data", {}).get("token"):
+        await asyncio.to_thread(polytron_ac_controller.fetch_devices)
+    return JSONResponse(res)
+
+
+@app.get("/iot/ac/status")
+async def ac_status_endpoint(request: Request, serial: Optional[str] = None):
+    """Get live state, temperature, and electrical telemetry of Polytron AC."""
+    verify_local_request(request)
+    state = await polytron_ac_controller.async_refresh_state(serial=serial)
+    return JSONResponse({
+        "status": "ok",
+        "authenticated": polytron_ac_controller.is_authenticated(),
+        "phone": polytron_ac_controller.phone if polytron_ac_controller.phone else None,
+        "default_serial": polytron_ac_controller.default_serial,
+        "state": state.to_dict() if state else None,
+    })
+
+
+@app.get("/iot/ac/devices")
+async def ac_devices_endpoint(request: Request):
+    """List all registered Polytron smart appliances."""
+    verify_local_request(request)
+    devices = await asyncio.to_thread(polytron_ac_controller.fetch_devices)
+    return JSONResponse({
+        "status": "ok",
+        "devices": devices,
+        "default_serial": polytron_ac_controller.default_serial,
     })
 
 
