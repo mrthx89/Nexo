@@ -56,6 +56,7 @@ def render_portal_html() -> str:
             --accent-silver: #cbd5e1;
             --accent-emerald: #10b981;
             --accent-amber: #f59e0b;
+            --accent-coral: #ff5252;
             --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         }}
@@ -73,7 +74,7 @@ def render_portal_html() -> str:
         }}
         .container {{
             width: 100%;
-            max-width: 1080px;
+            max-width: 1120px;
         }}
         header {{
             display: flex;
@@ -137,10 +138,10 @@ def render_portal_html() -> str:
         
         .hero {{
             text-align: center;
-            padding: 24px 0 40px;
+            padding: 24px 0 36px;
         }}
         .hero h2 {{
-            font-size: 44px;
+            font-size: 42px;
             font-weight: 800;
             letter-spacing: -0.03em;
             line-height: 1.15;
@@ -150,21 +151,23 @@ def render_portal_html() -> str:
             -webkit-text-fill-color: transparent;
         }}
         .hero p.lead {{
-            font-size: 18px;
+            font-size: 17px;
             color: var(--text-muted);
-            max-width: 680px;
-            margin: 0 auto 28px;
+            max-width: 740px;
+            margin: 0 auto 24px;
         }}
         .motto-banner {{
             display: inline-flex;
             align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
             gap: 10px;
             font-size: 13px;
             color: var(--accent-silver);
             background: var(--bg-surface);
             border: 1px solid var(--border-subtle);
-            padding: 6px 16px;
-            border-radius: 6px;
+            padding: 8px 18px;
+            border-radius: 8px;
         }}
         .motto-banner strong {{
             color: var(--accent-cyan);
@@ -186,9 +189,9 @@ def render_portal_html() -> str:
             position: absolute;
             top: 0; left: 50%;
             transform: translateX(-50%);
-            width: 320px;
-            height: 200px;
-            background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.12) 0%, transparent 70%);
+            width: 380px;
+            height: 220px;
+            background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.14) 0%, transparent 70%);
             pointer-events: none;
         }}
         .mascot-display {{
@@ -209,14 +212,19 @@ def render_portal_html() -> str:
             font-size: 15px;
             font-weight: 600;
             color: var(--text-main);
-            margin-bottom: 16px;
+            margin-bottom: 12px;
+        }}
+        .stage-submeta {{
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-bottom: 18px;
         }}
         .expression-picker {{
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             gap: 8px;
-            max-width: 780px;
+            max-width: 820px;
             margin: 0 auto;
         }}
         .expr-btn {{
@@ -244,7 +252,7 @@ def render_portal_html() -> str:
         }}
 
         /* Topology & Pillar Grid */
-        .grid-2 {{
+        .grid-3 {{
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 20px;
@@ -263,33 +271,39 @@ def render_portal_html() -> str:
             margin-bottom: 14px;
         }}
         .card-icon {{
-            font-size: 20px;
+            font-size: 22px;
+            line-height: 1;
         }}
         .card h3 {{
-            font-size: 17px;
+            font-size: 16px;
             font-weight: 600;
             color: var(--text-main);
         }}
         .card p {{
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-muted);
             margin-bottom: 16px;
+            line-height: 1.5;
         }}
         .card ul {{
             list-style: none;
             padding: 0;
         }}
         .card li {{
-            font-size: 13px;
+            font-size: 12.5px;
             color: var(--text-muted);
-            padding: 6px 0;
+            padding: 7px 0;
             border-top: 1px solid rgba(255, 255, 255, 0.04);
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            gap: 8px;
         }}
         .card li strong {{
             color: var(--text-main);
             font-weight: 500;
+            text-align: right;
+            word-break: break-word;
         }}
 
         /* Diagnostics & Endpoints */
@@ -299,10 +313,11 @@ def render_portal_html() -> str:
             border-radius: 8px;
             padding: 12px 16px;
             font-family: var(--font-mono);
-            font-size: 13px;
+            font-size: 12.5px;
             color: #7dd3fc;
             overflow-x: auto;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
+            line-height: 1.55;
         }}
         .endpoint-row {{
             display: flex;
@@ -311,15 +326,17 @@ def render_portal_html() -> str:
             padding: 10px 0;
             border-bottom: 1px solid var(--border-subtle);
             font-size: 13px;
+            gap: 12px;
         }}
         .endpoint-row:last-child {{ border-bottom: none; }}
         .badge-method {{
             font-family: var(--font-mono);
             font-weight: 700;
             font-size: 11px;
-            padding: 2px 6px;
+            padding: 2px 7px;
             border-radius: 4px;
             margin-right: 8px;
+            display: inline-block;
         }}
         .badge-get {{ background: #064e3b; color: #34d399; }}
         .badge-ws {{ background: #312e81; color: #a5b4fc; }}
@@ -354,17 +371,17 @@ def render_portal_html() -> str:
             </a>
             <div class="status-badge">
                 <span class="pulse-dot"></span>
-                <span>Gateway Online</span>
+                <span id="gatewayStatusText">Gateway Online</span>
             </div>
         </header>
 
         <section class="hero">
             <h2>Wujud Fisik Hermes Agent di Meja Kerja Anda</h2>
             <p class="lead">
-                Nexo Dedicated Appliance menghadirkan antarmuka otonom bagi asisten AI: layar visual maskot digital yang hidup, pengeras suara alami berlatensi rendah, serta mikrofon hands-free dengan peredam gema hardware.
+                Nexo Dedicated Appliance menghadirkan antarmuka fisik otonom bagi asisten AI: layar visual maskot digital 3D yang hidup, pengeras suara alami berlatensi rendah (TTFA &lt; 800ms), deteksi suara on-device Silero VAD, kendali Smart Studio IoT terpadu, serta mikrofon hands-free dengan peredam gema hardware.
             </p>
             <div class="motto-banner">
-                <span>Filosofi & Rekayasa:</span>
+                <span>Filosofi &amp; Rekayasa:</span>
                 <strong>"Berkarya dengan hati @ 2026"</strong>
                 <span>&bull;</span>
                 <span>Kreator: <strong>Yanto Hariyono ({{YH Dev}})</strong></span>
@@ -379,66 +396,111 @@ def render_portal_html() -> str:
             <div class="stage-meta">
                 Mascot Visualizer: <span id="currentExprName" style="color: var(--accent-cyan);">Senang</span> (Nusa Silver)
             </div>
+            <div class="stage-submeta">
+                Tactile Touch Spring Physics &bull; Damped Harmonic Oscillator &bull; Real-time Gaze Tracking &bull; Ambient Sleep &bull; Pixel Shifting
+            </div>
             <div class="expression-picker">
                 {" ".join([f'<button class="expr-btn {"active" if e == "senang" else ""}" onclick="switchMascot(\'{e}\')">{e.replace("-", " ")}</button>' for e in AVAILABLE_EXPRESSIONS])}
             </div>
         </div>
 
-        <!-- System Architecture Grid -->
-        <div class="grid-2">
+        <!-- System Architecture & Technology Pillars Grid -->
+        <div class="grid-3">
+            <!-- 1. Hermes Core & Multi-Device -->
             <div class="card">
                 <div class="card-header">
                     <span class="card-icon">🧠</span>
-                    <h3>Pikiran & Penalaran (Hermes Core)</h3>
+                    <h3>Pikiran &amp; Penalaran (Hermes Core)</h3>
                 </div>
-                <p>Gateway server mengunci percakapan ke satu sesi kanonis persisten guna menjamin keutuhan memori kerja.</p>
+                <p>Gateway server mengunci sesi kanonis ke Hermes Agent CLI persisten untuk keutuhan memori kerja, dengan isolasi mandiri untuk multi-perangkat.</p>
                 <ul>
-                    <li><span>Hermes Model</span><strong>Hermes-Agent (Local vLLM :20128)</strong></li>
-                    <li><span>Canonical Session</span><strong>nexo (State Locked 🔒)</strong></li>
-                    <li><span>Bridge Mode</span><strong>Subprocess CLI Bridge</strong></li>
-                    <li><span>Context Window</span><strong>1,048,576 Tokens</strong></li>
+                    <li><span>Hermes Engine</span><strong>Hermes Agent CLI Bridge</strong></li>
+                    <li><span>Canonical Session</span><strong>nexo (Terminal Synced 🔒)</strong></li>
+                    <li><span>Multi-Device</span><strong>nexo-&lt;device_id&gt; Isolated</strong></li>
+                    <li><span>Compaction Guard</span><strong>Anti-Replay SQLite Filter</strong></li>
+                    <li><span>Smart Briefing</span><strong>Sapaan Waktu WIB &amp; Pantun</strong></li>
                 </ul>
             </div>
 
+            <!-- 2. Pipelined Voice & Biometrics -->
             <div class="card">
                 <div class="card-header">
                     <span class="card-icon">🔊</span>
-                    <h3>Suara & Persepsi (Pipelined Voice)</h3>
+                    <h3>Suara &amp; Biometrik (Pipelined Voice)</h3>
                 </div>
-                <p>Pipeline suara paralel memangkas jeda respon ke tingkat percakapan manusia alami.</p>
+                <p>Pipeline suara paralel memangkas jeda respon ke tingkat percakapan alami dengan dukungan biometrik vokal dan interupsi instan.</p>
                 <ul>
                     <li><span>STT Engine</span><strong>Faster-Whisper (base, ID)</strong></li>
                     <li><span>TTS Engine</span><strong>Edge-TTS (id-ID-ArdiNeural)</strong></li>
                     <li><span>Latency (TTFA)</span><strong>&lt; 800 ms (Sentence-Chunked)</strong></li>
+                    <li><span>Voice Barge-In</span><strong>Interupsi Bicara Alami</strong></li>
+                    <li><span>Biometrik Vokal</span><strong>CAM++ ONNX (192-dim)</strong></li>
                     <li><span>Echo Guard</span><strong>600 ms Hardware AEC Safe</strong></li>
                 </ul>
             </div>
 
+            <!-- 3. Android Native Client -->
             <div class="card">
                 <div class="card-header">
                     <span class="card-icon">📱</span>
-                    <h3>Antarmuka Layar Kios (Android Native)</h3>
+                    <h3>Antarmuka Kios &amp; Mobile (Android)</h3>
                 </div>
-                <p>Wajah visual maskot Nusa Silver berjalan 60 FPS pada GPU Canvas monitor pintar Anda.</p>
+                <p>Antarmuka native zero-option yang ergonomis satu jempol, memadukan visual maskot 60 FPS dengan audio capture yang tangguh.</p>
                 <ul>
-                    <li><span>Target Client</span><strong>Android 8.0+ (id.my.yhdev.nexo)</strong></li>
-                    <li><span>Ekspresi Emosi</span><strong>16 State + Ambient Sleeping</strong></li>
-                    <li><span>Burn-in Guard</span><strong>Anti-Burn-In Pixel Shifting</strong></li>
-                    <li><span>Audio Chimes</span><strong>EarconManager (Zero Lag Chimes)</strong></li>
+                    <li><span>Target Client</span><strong>Android 8.0+ Native Kotlin</strong></li>
+                    <li><span>Main Action</span><strong>Floating Circular Pill (56dp)</strong></li>
+                    <li><span>Waveform</span><strong>LiveWaveformView (4-Bar Wave)</strong></li>
+                    <li><span>Header Status</span><strong>Micro-Capsule (32dp Glass)</strong></li>
+                    <li><span>VAD Engine</span><strong>Silero VAD v6.2.3 (On-Device)</strong></li>
+                    <li><span>Background Live</span><strong>MediaSession &amp; Dynamic Island</strong></li>
                 </ul>
             </div>
 
+            <!-- 4. Smart Studio Lighting (WiZ) -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">💡</span>
+                    <h3>Smart Lighting (Philips WiZ)</h3>
+                </div>
+                <p>Pencahayaan studio pintar berkecepatan tinggi melalui protokol UDP lokal tanpa ketergantungan cloud pihak ketiga.</p>
+                <ul>
+                    <li><span>Protokol Kendali</span><strong>Stateless UDP Port 38899</strong></li>
+                    <li><span>Kecepatan Eksekusi</span><strong>&lt; 20 ms (Zero Cloud Delay)</strong></li>
+                    <li><span>Palet Warna</span><strong>16+ Warna &amp; 2200K–6500K</strong></li>
+                    <li><span>Smart Scenes</span><strong>Mode Fokus &amp; Mode Santai</strong></li>
+                    <li><span>Auto-Discovery</span><strong>UDP Broadcast Local Bridge</strong></li>
+                </ul>
+            </div>
+
+            <!-- 5. Polytron AC & Power Telemetry -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">❄️</span>
+                    <h3>Smart HVAC &amp; Daya (Polytron AC)</h3>
+                </div>
+                <p>Integrasi reverse-engineered (REA) ke cloud Fira/Polytron untuk kendali pendingin udara dan pemantauan daya listrik aktif.</p>
+                <ul>
+                    <li><span>Unit Target</span><strong>Smart Neuva Pro (PAC-05/09VZI)</strong></li>
+                    <li><span>Daya Aktif</span><strong>⚡ Live Watt Metering Real-Time</strong></li>
+                    <li><span>Sensor Ruangan</span><strong>🌡️ Suhu Ruang &amp; 📈 kWh Harian</strong></li>
+                    <li><span>Kontrol HVAC</span><strong>Suhu (16–32°C), Mode, Fan, Swing</strong></li>
+                    <li><span>Otentikasi Aman</span><strong>Tantangan OTP WhatsApp Fira</strong></li>
+                </ul>
+            </div>
+
+            <!-- 6. Network Security & Perimeter -->
             <div class="card">
                 <div class="card-header">
                     <span class="card-icon">🛡️</span>
-                    <h3>Keamanan & Perimeter (Stage 1 Auth)</h3>
+                    <h3>Keamanan &amp; Perimeter (Zero Trust)</h3>
                 </div>
-                <p>Koneksi end-to-end terenkripsi penuh melalui Cloudflare Zero Trust dan token SHA-256 lokal.</p>
+                <p>Koneksi end-to-end terenkripsi penuh melalui Cloudflare Zero Trust, isolasi kredensial lokal, dan otentikasi per perangkat.</p>
                 <ul>
                     <li><span>Public Tunnel</span><strong>nexo.yhdev.my.id (Zero Trust)</strong></li>
                     <li><span>Origin Port</span><strong>127.0.0.1:8766 (Loopback Only)</strong></li>
                     <li><span>Device Registry</span><strong>HMAC-SHA256 (Mode 0600)</strong></li>
-                    <li><span>Remote Provisioning</span><strong>Telegram Bot (/nexo_token)</strong></li>
+                    <li><span>Endpoint Guard</span><strong>verify_local_or_appliance</strong></li>
+                    <li><span>Key Storage</span><strong>Android Keystore (Hardware AES)</strong></li>
                 </ul>
             </div>
         </div>
@@ -447,7 +509,7 @@ def render_portal_html() -> str:
         <div class="card" style="margin-bottom: 36px;">
             <div class="card-header">
                 <span class="card-icon">⚡</span>
-                <h3>Endpoints & Integrasi Sistem</h3>
+                <h3>Endpoints &amp; Integrasi Sistem</h3>
             </div>
             
             <div class="endpoint-row">
@@ -455,27 +517,77 @@ def render_portal_html() -> str:
                     <span class="badge-method badge-get">GET</span>
                     <code>/health</code>
                 </div>
-                <span style="color: var(--accent-emerald);">Public &bull; HTTP 200 Health Check</span>
+                <span style="color: var(--accent-emerald);">Public &bull; Health Check &amp; Service Metadata</span>
             </div>
             <div class="endpoint-row">
                 <div>
                     <span class="badge-method badge-ws">WSS</span>
                     <code>/ws/appliance</code>
                 </div>
-                <span style="color: var(--accent-cyan);">Protected &bull; Full-Duplex PCM16/MP3 Audio Gateway</span>
+                <span style="color: var(--accent-cyan);">Protected &bull; Full-Duplex PCM16/MP3 Audio Gateway &amp; Cognitive Stream</span>
+            </div>
+            <div class="endpoint-row">
+                <div>
+                    <span class="badge-method badge-get">GET</span>
+                    <code>/iot/status</code>
+                </div>
+                <span style="color: var(--accent-emerald);">Protected &bull; Telemetri Server Linux (CPU, RAM, Suhu) &amp; Status IoT</span>
+            </div>
+            <div class="endpoint-row">
+                <div>
+                    <span class="badge-method badge-post">POST</span>
+                    <code>/iot/control</code>
+                </div>
+                <span style="color: var(--accent-amber);">Protected &bull; Kendali WiZ Lighting, Polytron AC, &amp; Smart Scene</span>
+            </div>
+            <div class="endpoint-row">
+                <div>
+                    <span class="badge-method badge-get">GET</span>
+                    <code>/iot/ac/status</code>
+                </div>
+                <span style="color: var(--accent-cyan);">Protected &bull; Telemetri Daya Real-Time (⚡ Watt, 🌡️ Suhu, 📈 kWh) AC Polytron</span>
+            </div>
+            <div class="endpoint-row">
+                <div>
+                    <span class="badge-method badge-post">POST</span>
+                    <code>/iot/ac/auth/request-otp</code>
+                </div>
+                <span style="color: var(--accent-amber);">Protected &bull; Request OTP WhatsApp Pairing Polytron Fira</span>
+            </div>
+            <div class="endpoint-row">
+                <div>
+                    <span class="badge-method badge-post">POST</span>
+                    <code>/iot/ac/auth/verify-otp</code>
+                </div>
+                <span style="color: var(--accent-amber);">Protected &bull; Verifikasi OTP WhatsApp &amp; Registrasi Sesi Token</span>
             </div>
             <div class="endpoint-row">
                 <div>
                     <span class="badge-method badge-get">GET</span>
                     <code>/session/*</code>
                 </div>
-                <span style="color: var(--text-dim);">Protected &bull; Local Operator Loopback Only</span>
+                <span style="color: var(--text-dim);">Loopback Only &bull; Local Operator CLI &amp; Terminal Bridge</span>
             </div>
 
-            <h4 style="font-size: 14px; margin: 20px 0 10px; color: var(--text-main);">Perintah Terminal Lokal (Hermes CLI Bridge):</h4>
-            <div class="code-snippet">nexo status          # Cek status konektivitas server & appliance
-nexo watch           # Stream transkripsi kognitif real-time
-nexo bridge          # Konsol interaktif 2-arah (terminal + suara)</div>
+            <h4 style="font-size: 14px; margin: 24px 0 10px; color: var(--text-main);">Perintah Terminal Lokal (Nexo CLI &amp; IoT Subcommand):</h4>
+            <div class="code-snippet"># 1. Monitoring &amp; Sesi Kognitif
+nexo status            # Cek status server, bridge, dan appliance aktif
+nexo watch             # Stream transkripsi kognitif real-time
+nexo bridge            # Konsol interaktif 2-arah (terminal + suara)
+
+# 2. Smart Studio &amp; Lampu Philips WiZ
+nexo iot status        # Telemetri server Linux &amp; status perangkat IoT
+nexo iot light_on      # Sakelar nyala lampu studio WiZ
+nexo iot light_off     # Sakelar padam lampu studio WiZ
+nexo iot color -v biru # Ganti warna lampu WiZ (16+ palet warna)
+nexo iot dimming -v 80 # Atur kecerahan lampu 80 persen
+
+# 3. AC Polytron Smart Neuva Pro &amp; Telemetri Daya
+nexo ac status         # Cek daya listrik (⚡ Watt), suhu ruang, &amp; kWh
+nexo ac on / off       # Sakelar daya pendingin ruangan
+nexo ac temp -v 22     # Setel suhu target AC 22 derajat Celsius
+nexo ac login &lt;no_wa&gt;  # Request pairing OTP WhatsApp Polytron Fira
+nexo ac verify-otp &lt;no_wa&gt; &lt;kode&gt; # Verifikasi kode 6-digit OTP</div>
         </div>
 
         <footer>
@@ -513,6 +625,22 @@ nexo bridge          # Konsol interaktif 2-arah (terminal + suara)</div>
                 console.error('Failed to load mascot SVG:', err);
             }}
         }}
+
+        // Verify gateway health dynamically
+        window.addEventListener('DOMContentLoaded', async () => {{
+            const statusEl = document.getElementById('gatewayStatusText');
+            try {{
+                const res = await fetch('/health');
+                if (res.ok) {{
+                    const data = await res.json();
+                    if (data.status === 'healthy') {{
+                        statusEl.textContent = 'Gateway Online (' + (data.appliance || 'Nexo') + ')';
+                    }}
+                }}
+            }} catch (_) {{
+                // Keep default text if offline or unreachable
+            }}
+        }});
     </script>
 </body>
 </html>"""

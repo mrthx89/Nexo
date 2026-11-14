@@ -198,10 +198,10 @@ _SHOW_IOT_COMMANDS = {
 }
 
 _SHOW_IOT_PATTERNS = [
-    re.compile(r"^(buka|puka|pukak|tampilkan|lihat|daftar|list|kelola)\s+(kontrol|kendali|panel|pengaturan|settingan|setting)?\s*(lampu|lighting|wiz|iot|ac|pendingin|smart\s*home|perangkat)", re.I),
-    re.compile(r"^(kontrol|kendali|panel|pengaturan|settingan|setting)\s+(lampu|lighting|wiz|iot|ac|pendingin|smart\s*home|perangkat)", re.I),
-    re.compile(r"^panel\s+kontrol(\s+(lampu|lighting|wiz|iot|ac|pendingin|smart\s*home|perangkat))?", re.I),
-    re.compile(r"^(smart\s*home|perangkat\s*iot)$", re.I),
+    re.compile(r"^(buka|puka|pukak|tampilkan|lihat|daftar|list|kelola)\s+(kontrol|kendali|panel|pengaturan|settingan|setting|setelan|stelan|satangan|sidik)?\s*(yang\s+)?(lampu|lighting|wiz|iot|iyoti|eot|ac|pendingin|smart\s*home|perangkat)", re.I),
+    re.compile(r"^(kontrol|kendali|panel|pengaturan|settingan|setting|setelan|stelan|satangan)\s+(yang\s+)?(lampu|lighting|wiz|iot|iyoti|eot|ac|pendingin|smart\s*home|perangkat)", re.I),
+    re.compile(r"^panel\s+kontrol(\s+(lampu|lighting|wiz|iot|iyoti|eot|ac|pendingin|smart\s*home|perangkat))?", re.I),
+    re.compile(r"^(smart\s*home|perangkat\s*(iot|iyoti))$", re.I),
 ]
 
 _AC_ON_COMMANDS = {
