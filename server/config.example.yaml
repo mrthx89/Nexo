@@ -28,3 +28,8 @@ hermes:
 telemetry:
   frequency_bands_count: 5
   emit_interval_ms: 40
+
+iot:
+  wiz:
+    default_ip: ""
+    auto_discovery: true

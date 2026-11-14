@@ -23,6 +23,7 @@ from .pipeline.speaker import SpeakerVerifier
 from .hermes.agent_bridge import create_hermes_bridge
 from .session_hub import hub
 from .portal import render_portal_html, load_mascot_svg
+from .wiz import wiz_controller, COLOR_MAP, SCENE_MAP
 from .iot import (
     get_system_telemetry,
     get_iot_state,
@@ -121,6 +122,10 @@ class IoTControlPayload(BaseModel):
     scene: Optional[str] = None
     device: Optional[str] = None
     state: Optional[str] = None
+    dimming: Optional[int] = None
+    color: Optional[str] = None
+    temp: Optional[int] = None
+    ip: Optional[str] = None
     speak: bool = False
     speech_text: Optional[str] = None
     expression: Optional[str] = None
@@ -244,6 +249,7 @@ async def iot_control_endpoint(payload: IoTControlPayload, request: Request):
 
     if action in ("focus_mode", "mode_fokus"):
         state_snap = update_iot_state(scene="focus", device="ambient_backlight", state="focus_cyan")
+        asyncio.create_task(wiz_controller.set_scene("focus", ip=payload.ip))
         speech_reply = (
             "Mode fokus diaktifkan. Suasana studio disiapkan untuk konsentrasi penuh. "
             "Selamat berkarya dengan hati, Pak Yanto!"
@@ -251,6 +257,7 @@ async def iot_control_endpoint(payload: IoTControlPayload, request: Request):
         expr = "keren"
     elif action in ("relax_mode", "mode_santai", "mode_istirahat"):
         state_snap = update_iot_state(scene="relax", device="ambient_backlight", state="warm_amber")
+        asyncio.create_task(wiz_controller.set_scene("relax", ip=payload.ip))
         speech_reply = (
             "Mode santai diaktifkan. Suasana ruangan dibuat lebih tenang dan hangat. "
             "Selamat beristirahat sejenak, Pak Yanto."
@@ -258,17 +265,32 @@ async def iot_control_endpoint(payload: IoTControlPayload, request: Request):
         expr = "senang"
     elif action in ("light_on", "nyalakan_lampu"):
         state_snap = update_iot_state(device="studio_light", state="on")
-        speech_reply = "Lampu studio telah dinyalakan."
+        asyncio.create_task(wiz_controller.turn_on(ip=payload.ip, dimming=payload.dimming, temp=payload.temp))
+        speech_reply = "Lampu telah dinyalakan."
         expr = "senang"
     elif action in ("light_off", "matikan_lampu"):
         state_snap = update_iot_state(device="studio_light", state="off")
-        speech_reply = "Lampu studio telah dimatikan."
+        asyncio.create_task(wiz_controller.turn_off(ip=payload.ip))
+        speech_reply = "Lampu telah dimatikan."
         expr = "netral"
+    elif action == "wiz_color" or (action == "set_device" and payload.color):
+        state_snap = update_iot_state(device="studio_light", state="on")
+        col = payload.color or "putih"
+        asyncio.create_task(wiz_controller.set_color(col, ip=payload.ip))
+        speech_reply = f"Warna lampu diubah menjadi {col}."
+        expr = "keren"
+    elif action == "wiz_dimming" or (action == "set_device" and payload.dimming is not None):
+        state_snap = update_iot_state(device="studio_light", state="on")
+        dim_val = payload.dimming or 100
+        asyncio.create_task(wiz_controller.set_brightness(dim_val, ip=payload.ip))
+        speech_reply = f"Kecerahan lampu diatur ke {dim_val} persen."
+        expr = "senang"
     elif action == "set_device" and payload.device and payload.state:
         state_snap = update_iot_state(device=payload.device, state=payload.state)
         speech_reply = f"Perangkat {payload.device} diatur ke {payload.state}."
     elif action == "set_scene" and payload.scene:
         state_snap = update_iot_state(scene=payload.scene)
+        asyncio.create_task(wiz_controller.set_scene(payload.scene, ip=payload.ip))
         speech_reply = f"Suasana studio diatur ke {payload.scene}."
     else:
         state_snap = get_iot_state()

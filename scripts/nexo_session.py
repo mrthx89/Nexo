@@ -261,6 +261,8 @@ async def cmd_iot(args: argparse.Namespace):
         telem = res.get("telemetry", {})
         iot = res.get("iot_state", {})
         app = res.get("appliance", {})
+        wiz = iot.get("wiz", {})
+        wiz_st = wiz.get("state") or {}
         print("\n═════════════════════════════════════════════════════")
         print("          NEXO IOT & SMART STUDIO TELEMETRY")
         print("═════════════════════════════════════════════════════")
@@ -268,6 +270,9 @@ async def cmd_iot(args: argparse.Namespace):
         print(f"  Active Scene:       {iot.get('active_scene', 'normal').upper()}")
         print(f"  Studio Light:       {iot.get('devices', {}).get('studio_light', 'off').upper()}")
         print(f"  Ambient Light:      {iot.get('devices', {}).get('ambient_backlight', 'off').upper()}")
+        print(f"  Philips WiZ IP:     {wiz.get('configured_ip') or 'Tidak terkonfigurasi (auto-discovery)'}")
+        if wiz_st:
+            print(f"  WiZ Status:         {wiz_st.get('status_str', 'OFF')} (Dimming: {wiz_st.get('dimming')}%)")
         print("─────────────────────────────────────────────────────")
         print(f"  CPU Load (1m, 5m):  {telem.get('cpu_load_1m')}, {telem.get('cpu_load_5m')}")
         print(f"  RAM Terpakai:       {telem.get('ram_used_percent')}% ({telem.get('ram_available_mb')} MB free / {telem.get('ram_total_mb')} MB)")
@@ -279,10 +284,31 @@ async def cmd_iot(args: argparse.Namespace):
         return 0
     else:
         try:
-            res = await client.control_iot(action=action, speak=getattr(args, "speak", False))
+            val = getattr(args, "value", None)
+            ip = getattr(args, "ip", None)
+            payload_kwargs = {"speak": getattr(args, "speak", False)}
+            if val:
+                if action in ("color", "warna"):
+                    action = "wiz_color"
+                    payload_kwargs["color"] = val
+                elif action in ("dimming", "kecerahan", "terang"):
+                    action = "wiz_dimming"
+                    try:
+                        payload_kwargs["dimming"] = int(val)
+                    except ValueError:
+                        pass
+                elif action in ("scene", "mode"):
+                    payload_kwargs["scene"] = val
+            if ip:
+                payload_kwargs["ip"] = ip
+
+            res = await client.control_iot(action=action, **payload_kwargs)
             print(f"\n[IoT Control Executed: {action}]")
             print(f"Active Scene: {res.get('iot_state', {}).get('active_scene')}")
             print(f"Devices: {json.dumps(res.get('iot_state', {}).get('devices', {}))}")
+            wiz_info = res.get('iot_state', {}).get('wiz', {})
+            if wiz_info.get("state"):
+                print(f"Philips WiZ State: {json.dumps(wiz_info.get('state'))}")
             if res.get("spoken"):
                 print("🔊 Disuarakan di layar Nexo.")
             return 0
@@ -345,8 +371,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_status.set_defaults(func=cmd_status)
 
     # iot
-    p_iot = subparsers.add_parser("iot", parents=[parent], help="Kontrol IoT smart studio dan telemetri server")
-    p_iot.add_argument("action", nargs="?", default="status", help="Aksi IoT (status, focus_mode, relax_mode, light_on, light_off)")
+    p_iot = subparsers.add_parser("iot", parents=[parent], help="Kontrol IoT smart studio, Philips WiZ, dan telemetri server")
+    p_iot.add_argument("action", nargs="?", default="status", help="Aksi IoT (status, focus_mode, relax_mode, light_on, light_off, color, dimming, discover)")
+    p_iot.add_argument("--value", "-v", default=None, help="Nilai parameter (nama warna, level kecerahan %, atau scene)")
+    p_iot.add_argument("--ip", default=None, help="IP address spesifik lampu Philips WiZ")
     p_iot.add_argument("-s", "--speak", action="store_true", help="Picu output audio di appliance")
     p_iot.set_defaults(func=cmd_iot)
 

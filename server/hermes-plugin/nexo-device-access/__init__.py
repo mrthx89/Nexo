@@ -99,9 +99,39 @@ def _handle_help(raw_args, *, source=None, platform=None):
         "  Cek status online server, status koneksi tablet, dan ekspresi wajah.\n\n"
         "• <code>/nexo_say &lt;pesan teks&gt;</code>\n"
         "  Perintahkan speaker/layar tablet Nexo berucap langsung via suara.\n\n"
+        "• <code>/nexo_light &lt;on|off|warna|dimming&gt;</code>\n"
+        "  Kontrol lampu pintar Philips WiZ di rumah.\n\n"
         "• <code>/nexo_help</code>\n"
         "  Menampilkan panduan perintah ini."
     )
+
+
+def _handle_light(raw_args, *, source=None, platform=None):
+    """Command Philips WiZ smart lighting."""
+    if source is None or platform != 'telegram':
+        return 'Perintah ini hanya tersedia melalui chat privat Telegram pemilik.'
+    arg = (raw_args or '').strip().lower()
+    if not arg:
+        return "Penggunaan: <code>/nexo_light &lt;on|off|biru|merah|80%&gt;</code>"
+    server_url = os.environ.get('NEXO_SERVER_URL', 'http://127.0.0.1:8766')
+    try:
+        req_body = {"action": "light_on"}
+        if arg in ("off", "mati", "matikan"):
+            req_body = {"action": "light_off"}
+        elif "%" in arg or arg.isdigit():
+            val = int(arg.replace("%", "").strip())
+            req_body = {"action": "wiz_dimming", "dimming": val}
+        elif arg not in ("on", "hidup", "nyala", "nyalakan"):
+            req_body = {"action": "wiz_color", "color": arg}
+
+        req = Request(f'{server_url}/iot/control', data=json.dumps(req_body).encode(), headers={'Content-Type': 'application/json'})
+        with urlopen(req, timeout=10) as resp:
+            data = json.load(resp)
+        if data.get('status') == 'ok':
+            return f"💡 Lampu Philips WiZ diatur ({arg})."
+        return "⚠️ Gagal mengatur lampu."
+    except Exception as e:
+        return f"Gagal mengontrol lampu: {e}"
 
 
 def register(ctx):
@@ -128,6 +158,14 @@ def register(ctx):
     ctx.register_command('nexo_say', handler=_handle_say,
                          description='Perintahkan tablet Nexo berbicara via audio speaker.',
                          args_hint='<pesan teks>')
+
+    # Smart Lighting control
+    ctx.register_command('nexo-light', handler=_handle_light,
+                         description='Kontrol lampu pintar Philips WiZ rumah.',
+                         args_hint='<on|off|warna|dimming>')
+    ctx.register_command('nexo_light', handler=_handle_light,
+                         description='Kontrol lampu pintar Philips WiZ rumah.',
+                         args_hint='<on|off|warna|dimming>')
 
     # Help
     ctx.register_command('nexo-help', handler=_handle_help,

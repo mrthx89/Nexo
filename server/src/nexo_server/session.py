@@ -451,23 +451,32 @@ class NexoSessionClient:
         scene: Optional[str] = None,
         device: Optional[str] = None,
         state: Optional[str] = None,
+        dimming: Optional[int] = None,
+        color: Optional[str] = None,
+        temp: Optional[int] = None,
+        ip: Optional[str] = None,
         speak: bool = False,
         speech_text: Optional[str] = None,
         expression: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Trigger smart studio scene or IoT device control."""
+        payload_data: Dict[str, Any] = {
+            "action": action,
+            "scene": scene,
+            "device": device,
+            "state": state,
+            "dimming": dimming,
+            "color": color,
+            "temp": temp,
+            "ip": ip,
+            "speak": speak,
+            "speech_text": speech_text,
+            "expression": expression,
+        }
         return await self._async_http_request(
             "/iot/control",
             method="POST",
-            data={
-                "action": action,
-                "scene": scene,
-                "device": device,
-                "state": state,
-                "speak": speak,
-                "speech_text": speech_text,
-                "expression": expression,
-            },
+            data={k: v for k, v in payload_data.items() if v is not None or k in ("action", "speak")},
         )
 
     async def stream_events(

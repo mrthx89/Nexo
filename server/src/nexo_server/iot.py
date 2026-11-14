@@ -12,6 +12,7 @@ import urllib.request
 from typing import Any, Dict, Optional, Tuple
 
 from .mascot import MascotExpression, _COMMAND
+from .wiz import wiz_controller, COLOR_MAP, SCENE_MAP
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +75,14 @@ _LIGHT_ON_COMMANDS = {
     "hidupkan lampu studio",
     "nyalakan lampu kerja",
     "hidupkan lampu kerja",
+    "nyalakan lampu rumah",
+    "hidupkan lampu rumah",
+    "nyalakan lampu wiz",
+    "hidupkan lampu wiz",
+    "nyalakan lampu philips",
+    "hidupkan lampu philips",
+    "nyalakan lampu philips wiz",
+    "hidupkan lampu philips wiz",
 }
 
 _LIGHT_OFF_COMMANDS = {
@@ -82,6 +91,15 @@ _LIGHT_OFF_COMMANDS = {
     "padamkan lampu",
     "padamkan lampu studio",
     "matikan lampu kerja",
+    "padamkan lampu kerja",
+    "matikan lampu rumah",
+    "padamkan lampu rumah",
+    "matikan lampu wiz",
+    "padamkan lampu wiz",
+    "matikan lampu philips",
+    "padamkan lampu philips",
+    "matikan lampu philips wiz",
+    "padamkan lampu philips wiz",
 }
 
 _COMBO_FOCUS_LIGHT_COMMANDS = {
@@ -95,9 +113,17 @@ _COMBO_FOCUS_LIGHT_COMMANDS = {
 
 def get_iot_state() -> Dict[str, Any]:
     """Return a snapshot of the current smart studio state."""
+    wiz_target = wiz_controller.get_target_ip()
+    wiz_st = wiz_controller.states.get(wiz_target) if wiz_target else None
+    
     return {
         "active_scene": _IOT_STATE["active_scene"],
         "devices": dict(_IOT_STATE["devices"]),
+        "wiz": {
+            "configured_ip": wiz_target,
+            "state": wiz_st.to_dict() if wiz_st else None,
+            "registered_bulbs": list(wiz_controller.bulbs.keys()),
+        },
         "last_updated": _IOT_STATE["last_updated"],
     }
 
@@ -240,6 +266,16 @@ async def trigger_external_iot_webhook(event_payload: Dict[str, Any]) -> bool:
         return False
 
 
+def _safe_create_task(coro):
+    """Schedule coroutine safely if an event loop is running."""
+    try:
+        loop = asyncio.get_running_loop()
+        return loop.create_task(coro)
+    except RuntimeError:
+        coro.close()
+        return None
+
+
 def parse_iot_command(
     text: str, is_sleeping: bool = False
 ) -> Optional[Tuple[str, MascotExpression, Dict[str, Any]]]:
@@ -261,10 +297,15 @@ def parse_iot_command(
     # 1. Combo: Studio Light + Focus Mode
     if clean in _COMBO_FOCUS_LIGHT_COMMANDS or clean_body in _COMBO_FOCUS_LIGHT_COMMANDS:
         state_snap = update_iot_state(scene="focus", device="studio_light", state="on")
+        wiz_target = wiz_controller.get_target_ip()
+        _safe_create_task(wiz_controller.set_scene("focus"))
         event = {
             "type": "iot_control",
             "action": "studio_focus_combo",
             "iot_state": state_snap,
+            "wiz_action": "set_scene",
+            "wiz_scene": "focus",
+            "wiz_ip": wiz_target,
         }
         reply = (
             "Lampu studio dinyalakan dan mode fokus diaktifkan. "
@@ -275,10 +316,15 @@ def parse_iot_command(
     # 2. Focus Mode
     if clean in _FOCUS_SCENE_COMMANDS or clean_body in _FOCUS_SCENE_COMMANDS:
         state_snap = update_iot_state(scene="focus", device="ambient_backlight", state="focus_cyan")
+        wiz_target = wiz_controller.get_target_ip()
+        _safe_create_task(wiz_controller.set_scene("focus"))
         event = {
             "type": "iot_control",
             "action": "focus_mode",
             "iot_state": state_snap,
+            "wiz_action": "set_scene",
+            "wiz_scene": "focus",
+            "wiz_ip": wiz_target,
         }
         reply = (
             "Mode fokus diaktifkan. Suasana studio disiapkan untuk konsentrasi penuh. "
@@ -289,10 +335,15 @@ def parse_iot_command(
     # 3. Relax Mode
     if clean in _RELAX_SCENE_COMMANDS or clean_body in _RELAX_SCENE_COMMANDS:
         state_snap = update_iot_state(scene="relax", device="ambient_backlight", state="warm_amber")
+        wiz_target = wiz_controller.get_target_ip()
+        _safe_create_task(wiz_controller.set_scene("relax"))
         event = {
             "type": "iot_control",
             "action": "relax_mode",
             "iot_state": state_snap,
+            "wiz_action": "set_scene",
+            "wiz_scene": "relax",
+            "wiz_ip": wiz_target,
         }
         reply = (
             "Mode santai diaktifkan. Suasana ruangan dibuat lebih tenang dan hangat. "
@@ -300,27 +351,77 @@ def parse_iot_command(
         )
         return reply, MascotExpression.SENANG, event
 
-    # 4. Studio Light ON
+    # 4. Studio Light ON (including WiZ light)
     if clean in _LIGHT_ON_COMMANDS or clean_body in _LIGHT_ON_COMMANDS:
         state_snap = update_iot_state(device="studio_light", state="on")
+        wiz_target = wiz_controller.get_target_ip()
         event = {
             "type": "iot_control",
             "action": "studio_light_on",
             "iot_state": state_snap,
+            "wiz_action": "turn_on",
+            "wiz_ip": wiz_target,
         }
+        _safe_create_task(wiz_controller.turn_on())
         reply = "Lampu studio telah dinyalakan. Ruangan kerja siap digunakan, Pak Yanto."
         return reply, MascotExpression.SENANG, event
 
-    # 5. Studio Light OFF
+    # 5. Studio Light OFF (including WiZ light)
     if clean in _LIGHT_OFF_COMMANDS or clean_body in _LIGHT_OFF_COMMANDS:
         state_snap = update_iot_state(device="studio_light", state="off")
+        wiz_target = wiz_controller.get_target_ip()
         event = {
             "type": "iot_control",
             "action": "studio_light_off",
             "iot_state": state_snap,
+            "wiz_action": "turn_off",
+            "wiz_ip": wiz_target,
         }
+        _safe_create_task(wiz_controller.turn_off())
         reply = "Lampu studio telah dimatikan."
         return reply, MascotExpression.NETRAL, event
+
+    # 5b. WiZ Dynamic Control: Color (e.g. "ubah warna lampu jadi biru", "ganti warna lampu merah")
+    color_match = re.search(
+        r"(?:ubah|ganti|pasang|atur)?\s*(?:warna\s+)?lampu\s+(?:menjadi|jadi|ke)?\s*([a-z\s]+)",
+        clean_body,
+    )
+    if color_match:
+        target_color = color_match.group(1).strip()
+        if target_color in COLOR_MAP:
+            wiz_target = wiz_controller.get_target_ip()
+            _safe_create_task(wiz_controller.set_color(target_color))
+            state_snap = update_iot_state(device="studio_light", state="on")
+            event = {
+                "type": "iot_control",
+                "action": "wiz_set_color",
+                "color": target_color,
+                "iot_state": state_snap,
+                "wiz_ip": wiz_target,
+            }
+            reply = f"Warna lampu Philips WiZ diubah menjadi {target_color}."
+            return reply, MascotExpression.KEREN, event
+
+    # 5c. WiZ Dynamic Control: Brightness (e.g. "atur kecerahan lampu 80 persen", "terangkan lampu 50 persen")
+    dim_match = re.search(
+        r"(?:atur|ubah|set|bikin)?\s*(?:kecerahan|terang|dim)?\s*lampu\s+(?:menjadi|jadi|ke)?\s*(\d{1,3})\s*(?:%|persen)?",
+        clean_body,
+    )
+    if dim_match:
+        pct = int(dim_match.group(1))
+        if 5 <= pct <= 100:
+            wiz_target = wiz_controller.get_target_ip()
+            _safe_create_task(wiz_controller.set_brightness(pct))
+            state_snap = update_iot_state(device="studio_light", state="on")
+            event = {
+                "type": "iot_control",
+                "action": "wiz_set_brightness",
+                "dimming": pct,
+                "iot_state": state_snap,
+                "wiz_ip": wiz_target,
+            }
+            reply = f"Kecerahan lampu diatur ke {pct} persen, Pak Yanto."
+            return reply, MascotExpression.SENANG, event
 
     # 6. Server Telemetry & Health Check
     if clean in _SERVER_STATUS_COMMANDS or clean_body in _SERVER_STATUS_COMMANDS:
