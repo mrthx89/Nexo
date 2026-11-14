@@ -50,6 +50,32 @@ def test_activity_iot_devices_layout_elements():
         assert elem is not None, f"Missing element @+id/{name} in activity_iot_devices.xml"
 
 
+def test_item_polytron_ac_layout_elements():
+    root = ET.parse(MAIN / "res/layout/item_polytron_ac.xml").getroot()
+    expected_ids = (
+        "cardPolytronAc",
+        "ivAcIcon",
+        "tvAcTitle",
+        "tvAcSubtitle",
+        "switchAcPower",
+        "tvAcPowerWatt",
+        "tvAcRoomTemp",
+        "tvAcEnergy",
+        "btnAcTempDown",
+        "tvAcTargetTemp",
+        "btnAcTempUp",
+        "btnAcModeCool",
+        "btnAcModeDry",
+        "btnAcModeFan",
+        "btnAcModeAuto",
+        "btnAcFanSpeed",
+        "btnAcSwingToggle",
+    )
+    for name in expected_ids:
+        elem = by_id(root, name)
+        assert elem is not None, f"Missing element @+id/{name} in item_polytron_ac.xml"
+
+
 def test_item_wiz_bulb_layout_elements():
     root = ET.parse(MAIN / "res/layout/item_wiz_bulb.xml").getroot()
     expected_ids = (

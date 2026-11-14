@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardPolytronAc"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    android:background="@drawable/bg_iot_card"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- AC Header Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/ivAcIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:contentDescription="@string/iot_ac_title"
+            android:src="@drawable/ic_ac_24"
+            app:tint="@color/nexo_cyan" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvAcTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-bold"
+                android:singleLine="true"
+                android:text="@string/iot_ac_title"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/tvAcSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:singleLine="true"
+                android:text="@string/iot_ac_subtitle"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchAcPower"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <!-- Telemetry Meter Row (Power, Room Temp, Energy) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="#141E28"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/tvAcPowerWatt"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:text="@string/iot_ac_power_watt"
+            android:textColor="@color/nexo_cyan"
+            android:textSize="12sp" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="16dp"
+            android:background="#2E3C4E" />
+
+        <TextView
+            android:id="@+id/tvAcRoomTemp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:text="@string/iot_ac_room_temp"
+            android:textColor="@color/nexo_emerald"
+            android:textSize="12sp" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="16dp"
+            android:background="#2E3C4E" />
+
+        <TextView
+            android:id="@+id/tvAcEnergy"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:text="@string/iot_ac_energy"
+            android:textColor="@color/nexo_amber"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- Temperature Controller Stepper Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAcTempDown"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:minHeight="48dp"
+            android:minWidth="48dp"
+            android:text="-"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            app:strokeColor="#3A4D66" />
+
+        <TextView
+            android:id="@+id/tvAcTargetTemp"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-bold"
+            android:gravity="center"
+            android:text="@string/iot_ac_target_temp"
+            android:textColor="@color/nexo_cyan"
+            android:textSize="26sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAcTempUp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:minHeight="48dp"
+            android:minWidth="48dp"
+            android:text="+"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            app:strokeColor="#3A4D66" />
+    </LinearLayout>
+
+    <!-- Operation Modes Chips -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAcModeCool"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:backgroundTint="#0E2333"
+            android:minHeight="40dp"
+            android:text="@string/iot_ac_mode_cool"
+            android:textColor="@color/nexo_cyan"
+            android:textSize="10sp"
+            app:strokeColor="@color/nexo_cyan"
+            app:strokeWidth="1dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAcModeDry"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:backgroundTint="#1A2633"
+            android:minHeight="40dp"
+            android:text="@string/iot_ac_mode_dry"
+            android:textColor="@color/text_secondary"
+            android:textSize="10sp"
+            app:strokeColor="#3A4D66"
+            app:strokeWidth="1dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAcModeFan"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:backgroundTint="#1A2633"
+            android:minHeight="40dp"
+            android:text="@string/iot_ac_mode_fan"
+            android:textColor="@color/text_secondary"
+            android:textSize="10sp"
+            app:strokeColor="#3A4D66"
+            app:strokeWidth="1dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAcModeAuto"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:backgroundTint="#1A2633"
+            android:minHeight="40dp"
+            android:text="@string/iot_ac_mode_auto"
+            android:textColor="@color/text_secondary"
+            android:textSize="10sp"
+            app:strokeColor="#3A4D66"
+            app:strokeWidth="1dp" />
+    </LinearLayout>
+
+    <!-- Fan Speed & Swing Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAcFanSpeed"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:minHeight="40dp"
+            android:text="@string/iot_ac_fan_auto"
+            android:textColor="@color/text_primary"
+            android:textSize="10sp"
+            app:strokeColor="#3A4D66" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAcSwingToggle"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minHeight="40dp"
+            android:text="@string/iot_ac_swing"
+            android:textColor="@color/text_primary"
+            android:textSize="10sp"
+            app:strokeColor="#3A4D66" />
+    </LinearLayout>
+</LinearLayout>

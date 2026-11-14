@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="iot_activity_title">Perangkat IoT Studio</string>
-    <string name="iot_activity_subtitle">Philips WiZ • Local UDP 38899</string>
+    <string name="iot_activity_title">Smart Home Studio</string>
+    <string name="iot_activity_subtitle">Polytron Smart Home • Philips WiZ</string>
     <string name="iot_scan_button">Pindai Wi-Fi</string>
     <string name="iot_scanning">Memindai jaringan Wi-Fi lokal…</string>
     <string name="iot_found_count">%d Lampu WiZ Terdeteksi (DHCP)</string>
@@ -21,4 +21,21 @@
     <string name="iot_color_purple">Ungu</string>
     <string name="iot_color_amber">Amber</string>
     <string name="iot_back_desc">Kembali ke Beranda</string>
+
+    <!-- Polytron Smart Home Strings -->
+    <string name="iot_ac_title">AC Polytron Smart Neuva Pro</string>
+    <string name="iot_ac_subtitle">IoT23 Fira Cloud • PAC-05/09VZI</string>
+    <string name="iot_ac_power_watt">⚡ 0 W</string>
+    <string name="iot_ac_room_temp">🌡️ --°C</string>
+    <string name="iot_ac_energy">📈 0.0 kWh</string>
+    <string name="iot_ac_target_temp">22°C</string>
+    <string name="iot_ac_mode_cool">Dingin</string>
+    <string name="iot_ac_mode_dry">Kering</string>
+    <string name="iot_ac_mode_fan">Kipas</string>
+    <string name="iot_ac_mode_auto">Otomatis</string>
+    <string name="iot_ac_fan_auto">Fan: Auto</string>
+    <string name="iot_ac_fan_low">Low</string>
+    <string name="iot_ac_fan_med">Med</string>
+    <string name="iot_ac_fan_high">High</string>
+    <string name="iot_ac_swing">Louver Swing</string>
 </resources>

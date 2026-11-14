@@ -226,7 +226,7 @@
             android:textColor="@color/text_primary" />
     </LinearLayout>
 
-    <!-- Bulb List Container -->
+    <!-- Devices Scroll Container -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollBulbs"
         android:layout_width="match_parent"
@@ -236,10 +236,29 @@
         android:scrollbars="vertical">
 
         <LinearLayout
-            android:id="@+id/layoutBulbsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="24dp" />
+            android:paddingBottom="24dp">
+
+            <!-- Polytron Smart Neuva Pro AC Card -->
+            <include layout="@layout/item_polytron_ac" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="sans-serif-bold"
+                android:text="Lampu Pintar Philips WiZ"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:id="@+id/layoutBulbsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </LinearLayout>
