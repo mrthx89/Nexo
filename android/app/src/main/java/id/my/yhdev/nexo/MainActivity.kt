@@ -193,6 +193,7 @@ class MainActivity : AppCompatActivity(), NexoKioskService.ServiceCallback {
     private val credentialStore by lazy { DeviceCredentialStore(this) }
     private var currentServerUrl: String? = null
     private var credentialSheet: CredentialSetupSheet? = null
+    private var lastIotDialogLaunchTime = 0L
     private val deviceId: String by lazy {
         val androidId = android.provider.Settings.Secure.getString(
             contentResolver, android.provider.Settings.Secure.ANDROID_ID)
@@ -703,7 +704,14 @@ class MainActivity : AppCompatActivity(), NexoKioskService.ServiceCallback {
         runOnUiThread {
             if (isFinishing || isDestroyed) return@runOnUiThread
             if (dialog.action == "show_iot" || dialog.target == "iot_activity") {
+                val now = SystemClock.uptimeMillis()
+                if (now - lastIotDialogLaunchTime < 1500L) {
+                    return@runOnUiThread
+                }
+                lastIotDialogLaunchTime = now
+
                 val intent = Intent(this, id.my.yhdev.nexo.ui.IotDevicesActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
                     putExtra("EXTRA_FOCUS", dialog.focus ?: "all")
                     putExtra("EXTRA_SERVER_URL", currentServerUrl)
                     putExtra("EXTRA_DEVICE_ID", deviceId)

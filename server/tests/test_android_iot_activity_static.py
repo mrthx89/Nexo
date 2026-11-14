@@ -213,3 +213,26 @@ def test_iot_layout_string_resources_exist():
             assert match in strings, f"Missing string resource @string/{match} referenced in {layout_name}"
 
 
+def test_iot_activity_single_top_and_intent_stack_hygiene():
+    """Verify AndroidManifest and MainActivity prevent multiple stacked IotDevicesActivity instances."""
+    manifest_file = MAIN / "AndroidManifest.xml"
+    assert manifest_file.exists()
+    manifest_text = manifest_file.read_text()
+    assert 'android:name=".ui.IotDevicesActivity"' in manifest_text
+    assert 'android:launchMode="singleTop"' in manifest_text
+
+    main_activity_file = MAIN / "java/id/my/yhdev/nexo/MainActivity.kt"
+    assert main_activity_file.exists()
+    main_text = main_activity_file.read_text()
+    assert "FLAG_ACTIVITY_SINGLE_TOP" in main_text
+    assert "FLAG_ACTIVITY_REORDER_TO_FRONT" in main_text
+    assert "lastIotDialogLaunchTime" in main_text
+
+    iot_activity_file = MAIN / "java/id/my/yhdev/nexo/ui/IotDevicesActivity.kt"
+    assert iot_activity_file.exists()
+    iot_text = iot_activity_file.read_text()
+    assert "override fun onNewIntent(intent: Intent?)" in iot_text
+    assert "java.net.URI" in iot_text
+
+
+

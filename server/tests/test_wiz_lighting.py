@@ -113,9 +113,20 @@ def test_parse_wiz_brightness_command():
     "nexo buka kontrol lampu",
     "kontrol lampu",
     "buka setting lampu",
+    "buka settingan lampu",
+    "Nexo, buka settingan lampu",
     "buka kontrol ac",
+    "buka settingan ac",
+    "Nexo, buka settingan ac",
     "buka smart home",
     "smart home",
+    "Nexo, buka settingan IoT",
+    "Next, buka settingan IoT",
+    "Halo Nexo, buka settingan IoT",
+    "buka settingan iot",
+    "buka pengaturan iot",
+    "buka menu iot",
+    "buka dashboard iot",
 ])
 def test_parse_show_iot_command(cmd):
     res = parse_iot_command(cmd, is_sleeping=False)
@@ -127,10 +138,49 @@ def test_parse_show_iot_command(cmd):
     assert event["type"] == "iot_dialog"
     assert event["action"] == "show_iot"
     assert event["target"] == "iot_activity"
-    if "ac" in cmd:
+    clean_lower = cmd.lower()
+    if "ac" in clean_lower:
         assert event["focus"] == "ac"
-    elif "lampu" in cmd or "wiz" in cmd:
+    elif "lampu" in clean_lower or "wiz" in clean_lower:
         assert event["focus"] == "lighting"
     else:
         assert event["focus"] == "all"
+
+
+@pytest.mark.parametrize("cmd", [
+    "matikan semua lampu",
+    "padamkan semua lampu",
+    "matikan seluruh lampu",
+    "Nexo, matikan semua lampu",
+    "Next, matikan semua lampu",
+    "Halo Nexo, matikan semua lampu dong",
+    "Nexo, matikan seluruh lampu",
+    "Nexo, matikan lampu semua",
+])
+def test_parse_all_lights_off(cmd):
+    res = parse_iot_command(cmd, is_sleeping=False)
+    assert res is not None
+    reply, expr, event = res
+    assert "dimatikan" in reply.lower()
+    assert event["type"] == "iot_control"
+    assert event["action"] == "studio_light_off"
+
+
+@pytest.mark.parametrize("cmd", [
+    "nyalakan semua lampu",
+    "hidupkan semua lampu",
+    "nyalakan seluruh lampu",
+    "Nexo, nyalakan semua lampu",
+    "Next, nyalakan semua lampu",
+    "Halo Nexo, nyalakan semua lampu",
+    "Nexo, nyalakan lampu semua",
+])
+def test_parse_all_lights_on(cmd):
+    res = parse_iot_command(cmd, is_sleeping=False)
+    assert res is not None
+    reply, expr, event = res
+    assert "dinyalakan" in reply.lower()
+    assert event["type"] == "iot_control"
+    assert event["action"] == "studio_light_on"
+
 

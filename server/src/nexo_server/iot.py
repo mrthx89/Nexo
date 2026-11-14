@@ -84,6 +84,25 @@ _LIGHT_ON_COMMANDS = {
     "hidupkan lampu philips",
     "nyalakan lampu philips wiz",
     "hidupkan lampu philips wiz",
+    "nyalakan semua lampu",
+    "hidupkan semua lampu",
+    "nyalakan seluruh lampu",
+    "hidupkan seluruh lampu",
+    "nyalakan semua lampu studio",
+    "hidupkan semua lampu studio",
+    "nyalakan lampu semua",
+    "hidupkan lampu semua",
+    "nyalakan semua",
+    "hidupkan semua",
+    "nyalakan semuanya",
+    "hidupkan semuanya",
+    "aktifkan semua lampu",
+    "semua lampu nyala",
+    "semua lampu hidup",
+    "nyalain lampu",
+    "hidupin lampu",
+    "nyalain semua lampu",
+    "hidupin semua lampu",
     "nyalakan iot",
     "hidupkan iot",
     "iot on",
@@ -110,6 +129,25 @@ _LIGHT_OFF_COMMANDS = {
     "padamkan lampu philips",
     "matikan lampu philips wiz",
     "padamkan lampu philips wiz",
+    "matikan semua lampu",
+    "padamkan semua lampu",
+    "matikan seluruh lampu",
+    "padamkan seluruh lampu",
+    "matikan semua lampu studio",
+    "padamkan semua lampu studio",
+    "matikan lampu semua",
+    "padamkan lampu semua",
+    "matikan semua",
+    "padamkan semua",
+    "matikan semuanya",
+    "padamkan semuanya",
+    "nonaktifkan semua lampu",
+    "semua lampu mati",
+    "semua lampu padam",
+    "matiin lampu",
+    "padamin lampu",
+    "matiin semua lampu",
+    "padamin semua lampu",
     "matikan iot",
     "padamkan iot",
     "iot off",
@@ -119,6 +157,18 @@ _LIGHT_OFF_COMMANDS = {
     "matikan perangkat",
     "matikan perangkat iot",
 }
+
+_LIGHT_ON_PATTERNS = [
+    re.compile(r"^(nyalakan|hidupkan|aktifkan|nyalain|hidupin)\s+(semua\s+|seluruh\s+)?(lampu|lighting|wiz|lampunya|cahaya)(\s+(studio|kerja|ruangan|kamar|rumah|philips|wiz))?(\s+semua|\s+seluruh)?$", re.I),
+    re.compile(r"^(semua\s+|seluruh\s+)?(lampu|lighting|wiz|lampunya)\s+(nyala|hidup|on|aktif)$", re.I),
+    re.compile(r"^(nyalakan|hidupkan|aktifkan|nyalain|hidupin)\s+(semua|seluruhnya|semuanya)$", re.I),
+]
+
+_LIGHT_OFF_PATTERNS = [
+    re.compile(r"^(matikan|padamkan|nonaktifkan|matiin|padamin)\s+(semua\s+|seluruh\s+)?(lampu|lighting|wiz|lampunya|cahaya)(\s+(studio|kerja|ruangan|kamar|rumah|philips|wiz))?(\s+semua|\s+seluruh)?$", re.I),
+    re.compile(r"^(semua\s+|seluruh\s+)?(lampu|lighting|wiz|lampunya)\s+(mati|padam|off|nonaktif)$", re.I),
+    re.compile(r"^(matikan|padamkan|nonaktifkan|matiin|padamin)\s+(semua|seluruhnya|semuanya)$", re.I),
+]
 
 _COMBO_FOCUS_LIGHT_COMMANDS = {
     "nyalakan lampu studio dan pasang mode fokus",
@@ -139,6 +189,20 @@ _SHOW_IOT_COMMANDS = {
     "panel iot",
     "pengaturan iot",
     "setting iot",
+    "settingan iot",
+    "setingan iot",
+    "sendingan iot",
+    "buka settingan iot",
+    "buka setingan iot",
+    "buka sendingan iot",
+    "buka pengaturan iot",
+    "buka setting iot",
+    "menu iot",
+    "buka menu iot",
+    "tampilkan menu iot",
+    "dashboard iot",
+    "buka dashboard iot",
+    "tampilkan dashboard iot",
     "tampilkan lampu",
     "buka lampu",
     "daftar lampu",
@@ -195,13 +259,16 @@ _SHOW_IOT_COMMANDS = {
     "panel kontrol",
     "buka panel kontrol",
     "tampilkan panel kontrol",
+    "buka settingan",
+    "buka pengaturan",
 }
 
 _SHOW_IOT_PATTERNS = [
-    re.compile(r"^(buka|puka|pukak|tampilkan|lihat|daftar|list|kelola)\s+(kontrol|kendali|panel|pengaturan|settingan|setting|setelan|stelan|satangan|sidik)?\s*(yang\s+)?(lampu|lighting|wiz|iot|iyoti|eot|ac|pendingin|smart\s*home|perangkat)", re.I),
-    re.compile(r"^(kontrol|kendali|panel|pengaturan|settingan|setting|setelan|stelan|satangan)\s+(yang\s+)?(lampu|lighting|wiz|iot|iyoti|eot|ac|pendingin|smart\s*home|perangkat)", re.I),
-    re.compile(r"^panel\s+kontrol(\s+(lampu|lighting|wiz|iot|iyoti|eot|ac|pendingin|smart\s*home|perangkat))?", re.I),
-    re.compile(r"^(smart\s*home|perangkat\s*(iot|iyoti))$", re.I),
+    re.compile(r"^(buka|puka|pukak|tampilkan|lihat|daftar|list|kelola|perlihatkan|munculkan|masuk\s+ke)\s+(kontrol|kendali|panel|pengaturan|settingan|setting|setelan|stelan|satangan|sendingan|sendigan|sedigan|setingan|sidik|menu|halaman|dashboard|tampilan|layar|opsi)?\s*(yang\s+)?(lampu|lighting|wiz|iot|iyoti|i\s*o\s*t|aio\s*ti|ai\s*o\s*ti|ayoti|eot|ert|ac|pendingin|smart\s*home|perangkat|alat)", re.I),
+    re.compile(r"^(kontrol|kendali|panel|pengaturan|settingan|setting|setelan|stelan|satangan|sendingan|sendigan|sedigan|setingan|menu|halaman|dashboard|opsi)\s+(yang\s+)?(lampu|lighting|wiz|iot|iyoti|i\s*o\s*t|aio\s*ti|ai\s*o\s*ti|ayoti|eot|ert|ac|pendingin|smart\s*home|perangkat|alat)", re.I),
+    re.compile(r"^(buka|tampilkan|lihat)\s+(settingan|pengaturan|kontrol|panel|menu|dashboard|opsi)$", re.I),
+    re.compile(r"^panel\s+kontrol(\s+(lampu|lighting|wiz|iot|iyoti|i\s*o\s*t|aio\s*ti|ai\s*o\s*ti|ayoti|eot|ert|ac|pendingin|smart\s*home|perangkat|alat))?", re.I),
+    re.compile(r"^(smart\s*home|perangkat\s*(iot|iyoti|i\s*o\s*t))$", re.I),
 ]
 
 _AC_ON_COMMANDS = {
@@ -527,7 +594,11 @@ def parse_iot_command(
         return reply, MascotExpression.SENANG, event
 
     # 4. Studio Light ON (including WiZ light)
-    if clean in _LIGHT_ON_COMMANDS or clean_body in _LIGHT_ON_COMMANDS:
+    if (
+        clean in _LIGHT_ON_COMMANDS
+        or clean_body in _LIGHT_ON_COMMANDS
+        or any(p.search(clean) or p.search(clean_body) for p in _LIGHT_ON_PATTERNS)
+    ):
         state_snap = update_iot_state(device="studio_light", state="on")
         wiz_target = wiz_controller.get_target_ip()
         event = {
@@ -542,7 +613,11 @@ def parse_iot_command(
         return reply, MascotExpression.SENANG, event
 
     # 5. Studio Light OFF (including WiZ light)
-    if clean in _LIGHT_OFF_COMMANDS or clean_body in _LIGHT_OFF_COMMANDS:
+    if (
+        clean in _LIGHT_OFF_COMMANDS
+        or clean_body in _LIGHT_OFF_COMMANDS
+        or any(p.search(clean) or p.search(clean_body) for p in _LIGHT_OFF_PATTERNS)
+    ):
         update_iot_state(device="ambient_backlight", state="off")
         state_snap = update_iot_state(device="studio_light", state="off")
         wiz_target = wiz_controller.get_target_ip()

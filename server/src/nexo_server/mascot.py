@@ -31,10 +31,12 @@ class MascotExpression(str, Enum):
 
 
 # Filler may occur before/after one wakeword; the entire string must match.
-_FILLER = r"(?:tolong|mohon|coba|silakan|ayo)\s+"
+_FILLER = r"(?:tolong|mohon|coba|silakan|ayo|bisa)\s+"
+_WAKEWORDS = r"(?:(?:halo|hai|hei|hey)\s+)?(?:nexo|nekso|neso|next|neks|niko|miko|nexa|mekso|meko|jarvis)"
 _COMMAND = re.compile(
-    rf"(?:{_FILLER})?(?:(?:nexo|jarvis)[,]?\s+)?(?:{_FILLER})?"
-    r"(?P<body>.+?)(?:\s+(?:dong|ya|dulu))?[.!]?"
+    rf"(?:{_FILLER})?(?:{_WAKEWORDS}[,]?\s+)?(?:{_FILLER})?"
+    r"(?P<body>.+?)(?:\s+(?:dong|ya|dulu|deh|nih|sih|lah))?[.!]?$",
+    re.I
 )
 _TARGET = re.compile(
     r"(?:(?:tunjukkan|tampilkan)\s+(?:wajah|ekspresi)\s+"

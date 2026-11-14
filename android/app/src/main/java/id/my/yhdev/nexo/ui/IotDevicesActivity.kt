@@ -97,6 +97,12 @@ class IotDevicesActivity : AppCompatActivity() {
         handleFocusIntent()
     }
 
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleFocusIntent()
+    }
+
     override fun onResume() {
         super.onResume()
         fetchAcLiveStatus()
@@ -328,10 +334,16 @@ class IotDevicesActivity : AppCompatActivity() {
     }
 
     private fun getHttpBaseUrl(): String {
-        return serverUrl
+        val httpUrl = serverUrl
             .replaceFirst(Regex("^ws://", RegexOption.IGNORE_CASE), "http://")
             .replaceFirst(Regex("^wss://", RegexOption.IGNORE_CASE), "https://")
             .trimEnd('/')
+        return runCatching {
+            val uri = java.net.URI(httpUrl)
+            val scheme = uri.scheme ?: "https"
+            val authority = uri.authority ?: uri.host ?: ""
+            if (authority.isNotEmpty()) "$scheme://$authority" else httpUrl
+        }.getOrDefault(httpUrl)
     }
 
     private fun fetchAcLiveStatus() {

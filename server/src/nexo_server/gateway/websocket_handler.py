@@ -872,6 +872,7 @@ class ApplianceSession:
                 await self.send_json_message(IotDialog(
                     action=iot_event.get("action", "show_iot"),
                     target=iot_event.get("target", "iot_activity"),
+                    focus=iot_event.get("focus", "all"),
                     message=reply_text,
                 ))
             await self._speak_canned_reply(reply_text, reply_expr.value)
