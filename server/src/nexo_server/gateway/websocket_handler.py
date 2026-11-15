@@ -36,7 +36,11 @@ from ..mascot import (
     is_wake_command,
     MascotExpression,
 )
-from ..iot import parse_iot_command, trigger_external_iot_webhook
+from ..iot import (
+    parse_iot_command,
+    looks_like_local_command,
+    trigger_external_iot_webhook,
+)
 from .audio_buffer import CircularAudioBuffer, CircularRingBuffer
 from .mp3_frame import parse_audio_duration, parse_mp3_duration
 from .outdoor import OutdoorSession, OutdoorStore, OutdoorViolation
@@ -861,7 +865,13 @@ class ApplianceSession:
             await self._speak_canned_reply(reply_text, reply_expr.value)
             return
 
-        # Step 6: Smart Home, Studio Scenes, & Server Telemetry
+        # Step 6: Smart Home, Studio Scenes, & Server Telemetry.
+        #
+        # Pre-flight local-command gate: when the utterance carries a strong
+        # device/IoT signal it is routed to the local parser and NEVER handed to
+        # the Hermes LLM, so a device command can never be absorbed by the agent
+        # (talk but not act) -- even for phrasings not yet covered by the exact
+        # keyword matcher below.
         iot_result = parse_iot_command(transcription, self.is_sleeping)
         if iot_result is not None:
             reply_text, reply_expr, iot_event = iot_result
@@ -876,6 +886,16 @@ class ApplianceSession:
                     message=reply_text,
                 ))
             await self._speak_canned_reply(reply_text, reply_expr.value)
+            return
+
+        if looks_like_local_command(transcription):
+            # Strong device/IoT signal but the exact keyword matcher couldn't map
+            # it: return a local "unknown device command" reply instead of letting
+            # the LLM absorb the command.
+            await self._speak_canned_reply(
+                "Maaf, perintah perangkat belum saya mengerti. Coba 'buka settingan' atau 'matikan lampu'.",
+                MascotExpression.BINGUNG.value
+            )
             return
 
         # Step 3: Speaking / Streaming TTS from Hermes

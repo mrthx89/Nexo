@@ -490,6 +490,41 @@ def _safe_create_task(coro):
         return None
 
 
+# Broad, pre-LLM signal terms used to short-circuit the Hermes LLM for known
+# device / IoT intents. If an utterance carries this signal it is routed to the
+# local command parser and NEVER forwarded to the LLM, so the LLM can never
+# "absorb" a device command (talk but not act). This gate complements the exact
+# keyword matching in the *_COMMANDS sets / *_PATTERNS regexes below.
+# It intentionally requires an *action verb* AND a *device domain term* so that
+# generic LLM tasks ("buka email", "cek cuaca") stay with the LLM.
+_DEVICE_ACTION_VERBS = (
+    r"\b(buka|tampilkan|lihat|daftar|kelola|kontrol|kendali|nyalakan|nyalain|"
+    r"hidupkan|hidupin|padamkan|padamin|matikan|matiin|aktifkan|nonaktifkan|cek|"
+    r"status|ubah|ganti|atur|setel|set|bikin|pasang|hancurkan|hapus)\b"
+)
+_DEVICE_DOMAIN_TERMS = (
+    r"\b(lampu|ac|wiz|iot|smart\s*home|kamar|ruangan|studio|pendingin|thermostat|"
+    r"perangkat|alat|wifi|wi\s*-?\s*fi|bluetooth|sinyal|server|settingan|pengaturan|"
+    r"panel|menu|kontrol|kendali|opsi|layar)\b"
+)
+
+
+def looks_like_local_command(text: str) -> bool:
+    """Return True when ``text`` carries strong local device/IoT-command signal.
+
+    Used as a pre-flight gate so recognized device commands are handled locally
+    and never handed to the Hermes LLM (which could only talk, not act). Requires
+    at least one action verb and one device domain term; a bare wakeword is not
+    enough (otherwise "Nexo, buka email" would be swallowed locally).
+    """
+    if not text:
+        return False
+    clean = " ".join(text.casefold().split())
+    verb_hit = bool(re.search(_DEVICE_ACTION_VERBS, clean))
+    domain_hit = bool(re.search(_DEVICE_DOMAIN_TERMS, clean))
+    return verb_hit and domain_hit
+
+
 def parse_iot_command(
     text: str, is_sleeping: bool = False
 ) -> Optional[Tuple[str, MascotExpression, Dict[str, Any]]]:

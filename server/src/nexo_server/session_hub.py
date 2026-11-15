@@ -14,7 +14,7 @@ from .mascot import (
     parse_and_strip_emotional_tags,
     strip_emotional_tags,
 )
-from .iot import parse_iot_command, trigger_external_iot_webhook
+from .iot import parse_iot_command, looks_like_local_command, trigger_external_iot_webhook
 
 logger = logging.getLogger(__name__)
 
@@ -225,6 +225,7 @@ class SessionHub:
         # 2. Check for local mascot expression command or IoT command
         cmd_expression = parse_expression_command(message)
         iot_result = parse_iot_command(message)
+        device_command = looks_like_local_command(message)
         if cmd_expression is not None:
             reply = "Baik, ekspresi wajah sudah diubah."
             expr = cmd_expression.value
@@ -233,6 +234,14 @@ class SessionHub:
             expr = iot_expr.value
             self.publish_event(iot_event)
             asyncio.create_task(trigger_external_iot_webhook(iot_event))
+        elif device_command:
+            # Strong device/IoT signal but the exact parser couldn't map it: local
+            # "unknown device command" reply, never route to the LLM.
+            reply = (
+                "Maaf, perintah perangkat belum saya mengerti. "
+                "Coba 'buka settingan' atau 'matikan lampu'."
+            )
+            expr = "bingung"
         else:
             self.publish_event({
                 "type": "cognitive",
