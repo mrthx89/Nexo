@@ -124,6 +124,8 @@ open class NexoKioskService : Service() {
     private var lastVoiceprintDialog: VoiceprintDialog? = null
     @Volatile private var destroyed = false
     private var keepVoiceAlive = false
+    private var uiOverlaySuppressed = false
+    private var resumeAfterUiOverlay = false
     private var autoRestartAt = 0L
     private fun scheduleAutoRestart(message: String? = null) {
         val fatal = !permitted() || sheetOwner != null || (message != null && (
@@ -175,8 +177,9 @@ open class NexoKioskService : Service() {
     override fun onBind(intent: Intent?): IBinder = binder
     private fun now() = SystemClock.elapsedRealtime()
     private fun uuid() = UUID.randomUUID().toString()
-    private fun permitted() = (uiForeground || keepVoiceAlive) && foregroundAllowed &&
+    private fun permitted() = !uiOverlaySuppressed && (uiForeground || keepVoiceAlive) && foregroundAllowed &&
         checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+
     private fun persistOff() {
         voiceEnabled = keepVoiceAlive && permitted() && sheetOwner == null
         if (!voiceEnabled) {
@@ -255,12 +258,30 @@ open class NexoKioskService : Service() {
         uiForeground = value
         if (!value) {
             closeRecordingSheet("background")
-            if (!keepVoiceAlive) {
+            if (!keepVoiceAlive && !uiOverlaySuppressed) {
                 pauseLocal("background")
             }
         }
-        ownership.foreground(((value || keepVoiceAlive) && foregroundAllowed) && permitted())
+        ownership.foreground(((value || keepVoiceAlive) && foregroundAllowed && !uiOverlaySuppressed) && permitted())
         updateOngoingNotification(currentState, currentMessage, currentExpression)
+    }
+
+    fun setUiOverlaySuppressed(suppressed: Boolean) {
+        if (uiOverlaySuppressed == suppressed) return
+        uiOverlaySuppressed = suppressed
+        if (suppressed) {
+            resumeAfterUiOverlay = keepVoiceAlive || voiceEnabled
+            keepVoiceAlive = false
+            autoRestartAt = 0L
+            resumeOnHello = false
+            resumeOnRelease = false
+            closeRecordingSheet("ui_overlay")
+            pauseLocal("ui_overlay")
+        } else if (resumeAfterUiOverlay) {
+            resumeAfterUiOverlay = false
+            keepVoiceAlive = true
+            startVoice()
+        }
     }
     fun setAutomaticCapture(value: Boolean): Boolean {
         val busy = startingCapture || audioRecorder?.isRecording() == true || pendingUtterance != null ||
@@ -317,6 +338,7 @@ open class NexoKioskService : Service() {
     }
     fun stopVoice() {
         keepVoiceAlive = false; autoRestartAt = 0L
+        resumeAfterUiOverlay = false
         resumeOnHello = false; resumeOnRelease = false
         closeRecordingSheet("STOP")
         pauseLocal("STOP")

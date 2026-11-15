@@ -213,6 +213,20 @@ def test_iot_layout_string_resources_exist():
             assert match in strings, f"Missing string resource @string/{match} referenced in {layout_name}"
 
 
+def test_iot_overlay_suppresses_voice_while_settings_activity_is_open():
+    main_text = (MAIN / "java/id/my/yhdev/nexo/MainActivity.kt").read_text()
+    service_text = (MAIN / "java/id/my/yhdev/nexo/service/NexoKioskService.kt").read_text()
+
+    assert "setIotUiSuppressed(true)" in main_text
+    assert "setIotUiSuppressed(false)" in main_text
+    assert "fun setUiOverlaySuppressed(suppressed: Boolean)" in service_text
+    assert "private fun permitted() = !uiOverlaySuppressed" in service_text
+    suppression = service_text.split("fun setUiOverlaySuppressed(suppressed: Boolean)", 1)[1].split("fun setAutomaticCapture", 1)[0]
+    assert 'pauseLocal("ui_overlay")' in suppression
+    assert "resumeAfterUiOverlay = keepVoiceAlive || voiceEnabled" in suppression
+    assert "} else if (resumeAfterUiOverlay) {" in suppression
+
+
 def test_iot_activity_single_top_and_intent_stack_hygiene():
     """Verify AndroidManifest and MainActivity prevent multiple stacked IotDevicesActivity instances."""
     manifest_file = MAIN / "AndroidManifest.xml"

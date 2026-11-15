@@ -194,6 +194,14 @@ class MainActivity : AppCompatActivity(), NexoKioskService.ServiceCallback {
     private var currentServerUrl: String? = null
     private var credentialSheet: CredentialSetupSheet? = null
     private var lastIotDialogLaunchTime = 0L
+    private var iotUiSuppressed = false
+
+    private fun setIotUiSuppressed(suppressed: Boolean) {
+        if (iotUiSuppressed == suppressed) return
+        iotUiSuppressed = suppressed
+        kioskService?.setUiOverlaySuppressed(suppressed)
+    }
+
     private val deviceId: String by lazy {
         val androidId = android.provider.Settings.Secure.getString(
             contentResolver, android.provider.Settings.Secure.ANDROID_ID)
@@ -210,6 +218,7 @@ class MainActivity : AppCompatActivity(), NexoKioskService.ServiceCallback {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             val binder = service as NexoKioskService.LocalBinder
             kioskService = binder.getService()
+            kioskService?.setUiOverlaySuppressed(iotUiSuppressed)
             kioskService?.setUiForeground(uiActive)
             kioskService?.serviceCallback = this@MainActivity
             isBound = true
@@ -489,6 +498,7 @@ class MainActivity : AppCompatActivity(), NexoKioskService.ServiceCallback {
     override fun onResume() {
         super.onResume()
         uiActive = true
+        setIotUiSuppressed(false)
         kioskService?.setUiForeground(true)
         renderVoiceMood()
         uiHandler.removeCallbacks(pixelShiftRunnable)
@@ -709,6 +719,7 @@ class MainActivity : AppCompatActivity(), NexoKioskService.ServiceCallback {
                     return@runOnUiThread
                 }
                 lastIotDialogLaunchTime = now
+                setIotUiSuppressed(true)
 
                 val intent = Intent(this, id.my.yhdev.nexo.ui.IotDevicesActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
