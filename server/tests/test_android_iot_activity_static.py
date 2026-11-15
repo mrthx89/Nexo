@@ -226,6 +226,9 @@ def test_iot_overlay_suppresses_voice_while_settings_activity_is_open():
     assert "resumeAfterUiOverlay = keepVoiceAlive || voiceEnabled" in suppression
     assert "} else if (resumeAfterUiOverlay) {" in suppression
 
+    on_resume = main_text.split("override fun onResume()", 1)[1].split("override fun onStop()", 1)[0]
+    assert on_resume.index("kioskService?.setUiForeground(true)") < on_resume.index("setIotUiSuppressed(false)")
+
 
 def test_iot_activity_single_top_and_intent_stack_hygiene():
     """Verify AndroidManifest and MainActivity prevent multiple stacked IotDevicesActivity instances."""

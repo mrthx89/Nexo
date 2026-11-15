@@ -498,8 +498,8 @@ class MainActivity : AppCompatActivity(), NexoKioskService.ServiceCallback {
     override fun onResume() {
         super.onResume()
         uiActive = true
-        setIotUiSuppressed(false)
         kioskService?.setUiForeground(true)
+        setIotUiSuppressed(false)
         renderVoiceMood()
         uiHandler.removeCallbacks(pixelShiftRunnable)
         uiHandler.postDelayed(pixelShiftRunnable, 210_000L)
