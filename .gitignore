@@ -64,7 +64,7 @@ GoogleService-Info.plist
 *.jks
 *.keystore
 # Historical extensionless keystore alias
-/clients/android/Nexo
+/clients/nexo-android/Nexo
 keystore.properties
 .auth/
 *.credentials.json

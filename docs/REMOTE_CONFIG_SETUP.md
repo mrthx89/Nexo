@@ -23,7 +23,7 @@
      `id.my.yhdev.nexo` (dan pertahankan `id.my.yhdev.nexo` jika transisi bertahap).
    - Unduh file `google-services.json`. Lihat panduan detail di [docs/FIREBASE_SETUP.md](FIREBASE_SETUP.md).
    - Letakkan file tersebut di dalam folder repositori:
-     `clients/android/app/google-services.json`
+     `clients/nexo-android/app/google-services.json`
 
 3. **Buat Parameter di Remote Config**:
    - Di menu sebelah kiri Firebase Console, pilih **Run > Remote Config** (atau **Engage > Remote Config**).

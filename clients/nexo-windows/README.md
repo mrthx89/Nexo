@@ -49,7 +49,7 @@ Pinned VAD model SHA-256: `1a153a22f4509e292a94e67d6f9b85e8deb25b4988682b7e174c6
    - `rustup default stable`
    - target: `x86_64-pc-windows-msvc`
 2. Install **Visual Studio Build Tools** (MSVC C++ toolchain + Windows SDK). For later Tauri phases also install **WebView2 Runtime** and Tauri Windows prerequisites.
-3. Ensure the Silero model file is available locally and point `NEXO_VAD_MODEL` to it (SHA-256 must match the pinned value above). You can reuse `clients/android/app/src/main/assets/vad/silero-v6.2.3.onnx` from this repo.
+3. Ensure the Silero model file is available locally and point `NEXO_VAD_MODEL` to it (SHA-256 must match the pinned value above). You can reuse `clients/nexo-android/app/src/main/assets/vad/silero-v6.2.3.onnx` from this repo.
 4. From `clients/nexo-windows/`:
    ```powershell
    cargo test -p nexo-core

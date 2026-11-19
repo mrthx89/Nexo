@@ -12,7 +12,7 @@ Saat Nexo terpasang dan terkonfigurasi ke Hermes, Anda memperoleh 4 (empat) lapi
 
 | Antarmuka | Bentuk / Platform | Fungsi Utama |
 |---|---|---|
-| **Layar Kios Android** | Tablet / Smart Screen Android (`id.my.yhdev.nexo`) | **Wajah & Indra Fisik**: Mata digital maskot bercahaya dengan 16 ekspresi emosi Nusa Silver, animasi 60 FPS GPU, mikrofon hands-free AEC, speaker TTS, dan subtitle transkrip kognitif dengan tombol salin. |
+| **Layar Kios Android** | Tablet / Smart Screen Android (`id.my.yhdev.nexo`) | **Wajah & Indra Fisik**: Mata digital maskot bercahaya dengan 16 ekspresi emosi Nexo Silver, animasi 60 FPS GPU, mikrofon hands-free AEC, speaker TTS, dan subtitle transkrip kognitif dengan tombol salin. |
 | **Telegram Bot UI** | Chat privat bot Telegram Hermes (`nexo-device-access`) | **Remote Control & Provisioning**: Kartu visual interaktif status appliance (`/nexo_status`), penerbitan token perangkat (`/nexo_token`), dan perintah suara jarak jauh (`/nexo_say`). |
 | **Terminal Console Bridge** | Terminal CLI Hermes lokal (`nexo` CLI & `hermes chat`) | **Konsol Interaktif & Watcher**: Konsol interaktif 2 arah (`nexo bridge`), visualizer gelombang audio & transkrip real-time (`nexo watch`), serta mirroring jawaban otomatis dari sesi `hermes chat -c nexo`. |
 | **Hermes Agent Skill** | Skill internal Hermes (`~/.hermes/skills/nexo`) | **Otonomi Agen**: Hermes Agent di host tersebut otomatis memahami cara mengecek, mengontrol, dan mendiagnosis Nexo secara mandiri. |

@@ -2,7 +2,7 @@
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
-MAIN = Path(__file__).resolve().parents[2] / 'clients/android/app/src/main'
+MAIN = Path(__file__).resolve().parents[2] / 'clients/nexo-android/app/src/main'
 
 
 def _resolve_file(*candidates):

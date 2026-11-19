@@ -11,7 +11,7 @@ Dokumen ini berisi panduan resmi penyesuaian file konfigurasi klien Firebase (`g
 | **Application ID / Package** | `id.my.yhdev.nexo` | `id.my.yhdev.nexo` |
 | **Project Name (Gradle)** | `Nexo` | `Nexo` |
 | **Default WSS Endpoint** | `wss://nexo.yhdev.my.id/ws/appliance` | `wss://nexo.yhdev.my.id/ws/appliance` |
-| **Lokasi File Target** | `clients/android/app/google-services.json` | `clients/android/app/google-services.json` |
+| **Lokasi File Target** | `clients/nexo-android/app/google-services.json` | `clients/nexo-android/app/google-services.json` |
 
 ---
 
@@ -42,7 +42,7 @@ Jika Anda menggunakan proyek Firebase yang sama:
 
 Salin file `google-services.json` yang diunduh ke lokasi:
 ```
-clients/android/app/google-services.json
+clients/nexo-android/app/google-services.json
 ```
 
 Pastikan struktur JSON memiliki minimal blok client untuk `id.my.yhdev.nexo`:
@@ -63,9 +63,9 @@ Pastikan struktur JSON memiliki minimal blok client untuk `id.my.yhdev.nexo`:
   "configuration_version": "1"
 }
 ```
-*Contoh template dapat dilihat pada `clients/android/app/google-services.json.example`.*
+*Contoh template dapat dilihat pada `clients/nexo-android/app/google-services.json.example`.*
 
-> **Penting**: File `clients/android/app/google-services.json` bersifat privat dan diabaikan oleh `.gitignore` untuk mencegah kebocoran konfigurasi klien ke repository publik. Jangan menghapus aturan `.gitignore` untuk file ini.
+> **Penting**: File `clients/nexo-android/app/google-services.json` bersifat privat dan diabaikan oleh `.gitignore` untuk mencegah kebocoran konfigurasi klien ke repository publik. Jangan menghapus aturan `.gitignore` untuk file ini.
 
 ---
 

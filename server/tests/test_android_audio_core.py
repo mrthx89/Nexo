@@ -8,8 +8,8 @@ import subprocess
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-CORE = ROOT / "clients/android/app/src/main/java/id/my/yhdev/nexo/audio/core"
-HARNESS = ROOT / "clients/android/host-tests/AudioCoreHarness.java"
+CORE = ROOT / "clients/nexo-android/app/src/main/java/id/my/yhdev/nexo/audio/core"
+HARNESS = ROOT / "clients/nexo-android/host-tests/AudioCoreHarness.java"
 
 
 @pytest.fixture(scope="module")

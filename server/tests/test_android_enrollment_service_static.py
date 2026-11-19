@@ -7,7 +7,7 @@ These guards only inspect its Kotlin wiring; hardware/privacy acceptance is pend
 from pathlib import Path
 
 SERVICE = (Path(__file__).resolve().parents[2] /
-           "clients/android/app/src/main/java/id/my/yhdev/nexo/service/NexoKioskService.kt")
+           "clients/nexo-android/app/src/main/java/id/my/yhdev/nexo/service/NexoKioskService.kt")
 
 
 def source():

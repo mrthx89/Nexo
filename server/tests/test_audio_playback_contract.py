@@ -1,7 +1,7 @@
 """Source-level guards only: Android execution is forbidden for this repair."""
 from pathlib import Path
 
-SOURCE = (Path(__file__).parents[2] / "clients/android/app/src/main/java/id/my/yhdev/nexo/audio/AudioPlayerManager.kt").read_text()
+SOURCE = (Path(__file__).parents[2] / "clients/nexo-android/app/src/main/java/id/my/yhdev/nexo/audio/AudioPlayerManager.kt").read_text()
 
 
 def test_pcm_overflow_waits_for_capacity_instead_of_dropping_speech():

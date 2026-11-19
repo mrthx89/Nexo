@@ -6,7 +6,7 @@ import wave
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[2]
-ANDROID_MAIN = ROOT / "clients/android/app/src/main"
+ANDROID_MAIN = ROOT / "clients/nexo-android/app/src/main"
 JAVA_UI = ANDROID_MAIN / "java/id/my/yhdev/nexo/ui"
 JAVA_AUDIO = ANDROID_MAIN / "java/id/my/yhdev/nexo/audio"
 JAVA_SERVICE = ANDROID_MAIN / "java/id/my/yhdev/nexo/service"

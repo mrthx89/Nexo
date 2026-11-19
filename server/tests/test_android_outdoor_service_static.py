@@ -2,7 +2,7 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-JAVA = ROOT / "clients/android/app/src/main/java/id/my/yhdev/nexo"
+JAVA = ROOT / "clients/nexo-android/app/src/main/java/id/my/yhdev/nexo"
 
 
 def text(path):

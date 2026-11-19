@@ -55,7 +55,7 @@ def write_wav(path: Path, samples, sample_rate=SAMPLE_RATE):
     print(f"Written: {path} ({len(samples)} samples, {len(samples)/sample_rate:.2f}s)")
 
 def main():
-    res_raw = Path(__file__).resolve().parents[1] / "clients/android/app/src/main/res/raw"
+    res_raw = Path(__file__).resolve().parents[1] / "clients/nexo-android/app/src/main/res/raw"
     res_raw.mkdir(parents=True, exist_ok=True)
     
     # 1. Listening Chime: Pleasant, friendly two-tone rising chime (E5 -> B5)

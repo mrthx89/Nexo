@@ -394,7 +394,7 @@ def render_portal_html() -> str:
                 {initial_svg}
             </div>
             <div class="stage-meta">
-                Mascot Visualizer: <span id="currentExprName" style="color: var(--accent-cyan);">Senang</span> (Nusa Silver)
+                Mascot Visualizer: <span id="currentExprName" style="color: var(--accent-cyan);">Senang</span> (Nexo Silver)
             </div>
             <div class="stage-submeta">
                 Tactile Touch Spring Physics &bull; Damped Harmonic Oscillator &bull; Real-time Gaze Tracking &bull; Ambient Sleep &bull; Pixel Shifting

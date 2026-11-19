@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="clients/android/app/src/main/res/drawable/mascot_senang.png" width="200" alt="Maskot Nexo dengan ekspresi senang" />
+  <img src="clients/nexo-android/app/src/main/res/drawable/mascot_senang.png" width="200" alt="Maskot Nexo dengan ekspresi senang" />
 </p>
 
 <h1 align="center">Nexo Dedicated Appliance</h1>
@@ -169,7 +169,7 @@ Health endpoint: `http://127.0.0.1:8765/health`. Koneksi klien: `wss://<domain-a
 
 ### Android
 
-1. Buka `clients/android/` di Android Studio dengan full JDK 17 dan Android SDK 34.
+1. Buka `clients/nexo-android/` di Android Studio dengan full JDK 17 dan Android SDK 34.
 2. Sediakan konfigurasi Firebase lokal untuk paket `id.my.yhdev.nexo` (atau `id.my.yhdev.nexo`) dan atur endpoint WSS sesuai [panduan Remote Config](docs/REMOTE_CONFIG_SETUP.md).
 3. Ikuti [panduan build lokal Android](docs/BUILDING.md). Seluruh proses kompilasi dan build APK dilakukan secara lokal pada komputer pengembang (Android Studio / Gradle local); DILARANG KERAS menjalankan Gradle atau membuild Android di server VPS.
 4. Jalankan aplikasi, izinkan mikrofon, lalu tekan lama status untuk membuka pengaturan kredensial perangkat.
@@ -178,7 +178,7 @@ Health endpoint: `http://127.0.0.1:8765/health`. Koneksi klien: `wss://<domain-a
 ## Struktur repository
 
 ```text
-clients/android/     Klien Kotlin, audio, service, maskot, dan resource UI
+clients/nexo-android/     Klien Kotlin, audio, service, maskot, dan resource UI
 resource/    Artwork dan sumber maskot
 server/      Gateway FastAPI, STT/TTS, autentikasi, dan jembatan Hermes
 skills/      Paket Skill Hermes resmi (skills/nexo/SKILL.md) untuk otomasi agen
