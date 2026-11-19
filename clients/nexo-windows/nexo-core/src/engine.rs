@@ -557,7 +557,8 @@ impl EngineRunner {
             pb.reset_epoch();
         }
         self.gate.disconnected();
-        self.upload.cancel(chrono_now_millis());
+        self.upload.cancel(&mut self.transport, chrono_now_millis());
+        self.flush_upload_transport().await;
         if let Some(mut c) = self.conn.take() {
             let _ = c.close().await;
         }
@@ -1399,7 +1400,7 @@ impl EngineRunner {
         self.emit_snapshot(0.0).await;
     }
 
-    async fn emit_snapshot(&self, amplitude: f32) {
+    fn emit_snapshot(&self, amplitude: f32) -> impl std::future::Future<Output = ()> + Send + 'static {
         let can_finish = self
             .capture_shared
             .as_ref()
@@ -1424,8 +1425,12 @@ impl EngineRunner {
                 .map(|t| !t.is_empty() && t != crate::config::TOKEN_PLACEHOLDER)
                 .unwrap_or(false),
         };
-        *self.snapshot.write().await = snap.clone();
-        let _ = self.evt_tx.send(EngineEvent::Snapshot(snap));
+        let snapshot = Arc::clone(&self.snapshot);
+        let evt_tx = self.evt_tx.clone();
+        async move {
+            *snapshot.write().await = snap.clone();
+            let _ = evt_tx.send(EngineEvent::Snapshot(snap));
+        }
     }
 }
 

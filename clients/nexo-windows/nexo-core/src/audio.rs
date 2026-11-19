@@ -178,7 +178,7 @@ where
                 }
                 mono.push((sum / ch as f32).clamp(-1.0, 1.0));
             }
-            let out = if in_rate == out_rate {
+            let out: Vec<i16> = if in_rate == out_rate {
                 mono.into_iter()
                     .map(|f| (f * 32767.0).clamp(-32768.0, 32767.0) as i16)
                     .collect()
