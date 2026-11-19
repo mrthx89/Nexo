@@ -2,7 +2,7 @@
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
-BASE_ANDROID = Path(__file__).resolve().parents[2] / 'android/app/src'
+BASE_ANDROID = Path(__file__).resolve().parents[2] / 'clients/android/app/src'
 
 
 def _resolve_file(*candidates):

@@ -6,7 +6,7 @@ Nexo memakai Semantic Versioning (`MAJOR.MINOR.PATCH`) sebagai kebijakan rilis. 
 
 | Komponen | Sumber otoritatif | Nilai |
 | --- | --- | --- |
-| Android | `android/app/build.gradle.kts` | `versionName = "1.0.0"`, `versionCode = 1` |
+| Android | `clients/android/app/build.gradle.kts` | `versionName = "1.0.0"`, `versionCode = 1` |
 | Varian internal | Gradle `versionNameSuffix` | `1.0.0-internal` |
 | Paket Python server | `server/pyproject.toml` | `0.1.0` |
 | FastAPI/health server | `server/src/nexo_server/main.py` | `0.1.0` |

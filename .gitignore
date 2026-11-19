@@ -64,7 +64,7 @@ GoogleService-Info.plist
 *.jks
 *.keystore
 # Historical extensionless keystore alias
-/android/Nexo
+/clients/android/Nexo
 keystore.properties
 .auth/
 *.credentials.json
@@ -85,3 +85,6 @@ keystore.properties
 *PLAN*.md
 *REPAIR*.md
 *SCRATCH*.md
+
+# Local 9router backup (contains API keys & OAuth tokens)
+9router-backup-*.json

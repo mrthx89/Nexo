@@ -13,7 +13,7 @@
 4. **Resilience & Zero Touch**: Klien Android wajib mampu memulihkan koneksi secara mandiri (exponential backoff reconnect), auto-start saat boot, dan menjaga layar tetap aktif tanpa campur tangan pengguna.
 
 ## Repository Conventions
-- `android/`: Native Android Application (Kotlin, Gradle Kotlin DSL, Min SDK 26, Target SDK 34).
+- `clients/android/`: Native Android Application (Kotlin, Gradle Kotlin DSL, Min SDK 26, Target SDK 34).
 - `server/`: Python Async Gateway (FastAPI, WebSockets, Hermes Agent Bridge, STT/TTS Pipelines).
 - `docs/`: Spesifikasi formal (PRD, Arsitektur, Protokol Komunikasi, Panduan Perangkat Keras).
 

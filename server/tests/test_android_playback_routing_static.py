@@ -5,7 +5,7 @@ these checks cannot prove AudioTrack/SoundPool behavior or Kotlin compilation.
 """
 from pathlib import Path
 
-JAVA = Path(__file__).resolve().parents[2] / 'android/app/src/main/java/id/my/yhdev/nexo'
+JAVA = Path(__file__).resolve().parents[2] / 'clients/android/app/src/main/java/id/my/yhdev/nexo'
 
 
 def body(text, marker):

@@ -52,7 +52,7 @@ cd Nexo
 ### Langkah 2: Membuka Proyek di Android Studio
 1. Buka Android Studio.
 2. Pilih menu **File > Open...** (atau dari Welcome Screen: **Open**).
-3. Arahkan ke sub-direktori `android/` di dalam repositori Nexo (bukan root repositori).
+3. Arahkan ke sub-direktori `clients/android/` di dalam repositori Nexo (bukan root repositori).
 4. Klik **OK** dan biarkan Android Studio mendeteksi proyek Gradle.
 
 ### Langkah 3: Konfigurasi SDK & JDK di Android Studio
@@ -66,12 +66,12 @@ Aplikasi Nexo menggunakan Firebase Client untuk package `id.my.yhdev.nexo`.
 - Dapatkan file `google-services.json` resmi dari konsol Firebase pemilik proyek (lihat [docs/FIREBASE_SETUP.md](FIREBASE_SETUP.md)).
 - Tempatkan file tersebut pada path:
   ```text
-  android/app/google-services.json
+  clients/android/app/google-services.json
   ```
 - *Catatan*: File ini berisi konfigurasi client Firebase, bukan private service account server.
 
 ### Langkah 5: SDK Path (`local.properties`)
-Jika Android Studio belum otomatis membuatnya, buat file `android/local.properties` lokal:
+Jika Android Studio belum otomatis membuatnya, buat file `clients/android/local.properties` lokal:
 - **Linux / macOS**:
   ```properties
   sdk.dir=/home/<username>/Android/Sdk
@@ -93,20 +93,20 @@ Varian `internal` dirancang khusus untuk pengujian langsung oleh developer di pe
 
 - **Linux / macOS**:
   ```bash
-  cd android
+  cd clients/android
   ./gradlew testDebugUnitTest assembleInternal
   ```
 
 - **Windows (Command Prompt / PowerShell)**:
   ```cmd
-  cd android
+  cd clients/android
   gradlew.bat testDebugUnitTest assembleInternal
   ```
 
 ### Lokasi Output APK Internal:
 File APK yang dihasilkan akan berada di:
 ```text
-android/app/build/outputs/apk/internal/app-internal.apk
+clients/android/app/build/outputs/apk/internal/app-internal.apk
 ```
 
 ### Cara Memasang ke Tablet Android via ADB:
@@ -118,7 +118,7 @@ android/app/build/outputs/apk/internal/app-internal.apk
    ```
 4. Pasang APK internal ke perangkat:
    ```bash
-   adb install -r android/app/build/outputs/apk/internal/app-internal.apk
+   adb install -r clients/android/app/build/outputs/apk/internal/app-internal.apk
    ```
 
 *Perhatian*: Varian internal memiliki akhiran versi `-internal` namun mempertahankan Application ID produksi (`id.my.yhdev.nexo`) agar konfigurasi Firebase tetap valid. Jangan melakukan *uninstall* aplikasi sembarangan karena itu akan menghapus data kredensial token terenkripsi yang tersimpan di Keystore perangkat.
@@ -152,14 +152,14 @@ $env:NEXO_KEY_PASSWORD="password_alias_rahasia"
 
 ### Perintah Build Release:
 ```bash
-cd android
+cd clients/android
 ./gradlew assembleRelease
 # Windows: gradlew.bat assembleRelease
 ```
 
 ### Lokasi Output APK Production Release:
 ```text
-android/app/build/outputs/apk/release/app-release.apk
+clients/android/app/build/outputs/apk/release/app-release.apk
 ```
 
 ---
@@ -170,17 +170,17 @@ Untuk memverifikasi logika unit test Android (seperti parser, audio manager, dan
 
 - **Linux / macOS**:
   ```bash
-  cd android
+  cd clients/android
   ./gradlew testDebugUnitTest
   ```
 
 - **Windows**:
   ```cmd
-  cd android
+  cd clients/android
   gradlew.bat testDebugUnitTest
   ```
 
-Laporan hasil pengujian HTML akan tersedia di `android/app/build/reports/tests/testDebugUnitTest/index.html`.
+Laporan hasil pengujian HTML akan tersedia di `clients/android/app/build/reports/tests/testDebugUnitTest/index.html`.
 
 ---
 
@@ -207,7 +207,7 @@ Pemeriksaan ini mencakup:
    - Penyebab: Menggunakan JDK 21 atau lebih baru yang belum didukung oleh Gradle 8.7.
    - Solusi: Pasang dan atur `JAVA_HOME` ke JDK 17. Di Android Studio, ubah Gradle JDK ke versi 17.
 2. **Error `File google-services.json is missing`**:
-   - Solusi: Pastikan `google-services.json` telah diletakkan di `android/app/`.
+   - Solusi: Pastikan `google-services.json` telah diletakkan di `clients/android/app/`.
 3. **Error `Gradle wrapper checksum mismatch`**:
    - Pinned SHA-256 Gradle 8.7 wrapper JAR:
      `cb0da6751c2b753a16ac168bb354870ebb1e162e9083f116729cec9c781156b8`

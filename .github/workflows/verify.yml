@@ -27,15 +27,15 @@ jobs:
         env:
           FIREBASE_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
-          if [ ! -f android/app/google-services.json ]; then
+          if [ ! -f clients/android/app/google-services.json ]; then
             test -n "$FIREBASE_JSON" || { printf 'Configure GOOGLE_SERVICES_JSON repository secret.\n'; exit 1; }
-            printf '%s' "$FIREBASE_JSON" > android/app/google-services.json
+            printf '%s' "$FIREBASE_JSON" > clients/android/app/google-services.json
           fi
       - name: Unit tests and internal APK (never production signing)
-        working-directory: android
+        working-directory: clients/android
         run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleInternal
       - uses: actions/upload-artifact@v4
         with:
           name: nexo-internal-debug-signed
-          path: android/app/build/outputs/apk/internal/*.apk
+          path: clients/android/app/build/outputs/apk/internal/*.apk
           if-no-files-found: error

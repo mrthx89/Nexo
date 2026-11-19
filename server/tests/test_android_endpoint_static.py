@@ -3,7 +3,7 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 from urllib.parse import urlsplit
 
-ANDROID = Path(__file__).resolve().parents[2] / "android/app/src"
+ANDROID = Path(__file__).resolve().parents[2] / "clients/android/app/src"
 
 
 def _get_config_dir():

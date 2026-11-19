@@ -57,8 +57,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minHeight="48dp"
-            android:minWidth="48dp"
-            android:contentDescription="@string/iot_ac_power_label" />
+            android:minWidth="48dp" />
     </LinearLayout>
 
     <!-- Auth Warning / Pairing Banner (Shown when not authenticated) -->

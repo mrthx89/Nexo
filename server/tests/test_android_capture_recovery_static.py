@@ -9,7 +9,7 @@ import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
-JAVA = ROOT / "android/app/src/main/java/id/my/yhdev/nexo"
+JAVA = ROOT / "clients/android/app/src/main/java/id/my/yhdev/nexo"
 
 
 def source(relative):
@@ -117,7 +117,7 @@ class CaptureRecoveryStaticTests(unittest.TestCase):
         for forbidden in ("startService(", "startForegroundService(", "AlarmManager", "requestResume()"):
             self.assertNotIn(forbidden, removed + foreground)
         import xml.etree.ElementTree as ET
-        manifest = ET.parse(ROOT / "android/app/src/main/AndroidManifest.xml")
+        manifest = ET.parse(ROOT / "clients/android/app/src/main/AndroidManifest.xml")
         ns = "{http://schemas.android.com/apk/res/android}"
         kiosk = next(s for s in manifest.findall("application/service") if s.get(ns + "name") == ".service.NexoKioskService")
         self.assertEqual(kiosk.get(ns + "stopWithTask"), "false")

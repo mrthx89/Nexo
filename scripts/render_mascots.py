@@ -10,7 +10,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'resource/imoticon/svg'
-DEST = ROOT / 'android/app/src/main/res/drawable'
+DEST = ROOT / 'clients/android/app/src/main/res/drawable'
 
 def verify(path):
     with Image.open(path) as image:

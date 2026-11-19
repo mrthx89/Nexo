@@ -154,7 +154,7 @@ EOF
 if [ -f "${REPO_ROOT}/scripts/generate_earcons.py" ]; then
     echo "  -> Menghasilkan file audio earcons lokal Android (chime_*.wav & earcon_*.wav)..."
     python3 "${REPO_ROOT}/scripts/generate_earcons.py"
-    echo "  ✅ Aset audio earcons terverifikasi di android/app/src/main/res/raw/."
+    echo "  ✅ Aset audio earcons terverifikasi di clients/android/app/src/main/res/raw/."
 fi
 
 # ------------------------------------------------------------------------------

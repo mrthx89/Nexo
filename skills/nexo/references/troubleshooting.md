@@ -91,7 +91,7 @@ Fungsi `parse_and_strip_emotional_tags` terlewati sebelum teks masuk ke `synthes
 ### Masalah D: Sinyal Audio Lokal (Earcons) Tidak Berbunyi
 
 **Penyebab:**
-1. Berkas audio `earcon_listening.wav` / `earcon_thinking.wav` belum digenerate di `android/app/src/main/res/raw/`.
+1. Berkas audio `earcon_listening.wav` / `earcon_thinking.wav` belum digenerate di `clients/android/app/src/main/res/raw/`.
 2. Volume notifikasi / media di Android dibungkam (*muted*).
 
 **Langkah Perbaikan:**

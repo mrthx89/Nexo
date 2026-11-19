@@ -11,13 +11,13 @@ import xml.etree.ElementTree as ET
 import pytest  # type: ignore
 
 ROOT = Path(__file__).resolve().parents[2]
-ANDROID_RES = ROOT / "android/app/src/main/res"
+ANDROID_RES = ROOT / "clients/android/app/src/main/res"
 RES_DRAWABLE = ANDROID_RES / "drawable"
 RES_VALUES = ANDROID_RES / "values"
 RES_RAW = ANDROID_RES / "raw"
 RES_MIPMAP = ANDROID_RES / "mipmap-anydpi-v26"
-JAVA_MAIN = ROOT / "android/app/src/main/java"
-JAVA_TEST = ROOT / "android/app/src/test/java"
+JAVA_MAIN = ROOT / "clients/android/app/src/main/java"
+JAVA_TEST = ROOT / "clients/android/app/src/test/java"
 
 ANDROID_NS = "{http://schemas.android.com/apk/res/android}"
 APP_NS = "{http://schemas.android.com/apk/res-auto}"
