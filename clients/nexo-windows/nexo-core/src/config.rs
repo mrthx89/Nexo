@@ -121,6 +121,73 @@ fn read_config_file(path: &Path) -> Result<ConfigFile> {
     toml::from_str(&text).with_context(|| format!("parse config file {}", path.display()))
 }
 
+/// Default app data directory (`%LOCALAPPDATA%\Nexo` on Windows, `$XDG_DATA_HOME/nexo` elsewhere).
+pub fn app_data_dir() -> PathBuf {
+    #[cfg(windows)]
+    if let Ok(local) = std::env::var("LOCALAPPDATA") {
+        if !local.is_empty() {
+            return PathBuf::from(local).join("Nexo");
+        }
+    }
+    if let Ok(xdg) = std::env::var("XDG_DATA_HOME") {
+        if !xdg.is_empty() {
+            return PathBuf::from(xdg).join("nexo");
+        }
+    }
+    if let Ok(home) = std::env::var("HOME") {
+        if !home.is_empty() {
+            return PathBuf::from(home).join(".local/share/nexo");
+        }
+    }
+    std::env::temp_dir().join("nexo-appliance")
+}
+
+/// Validate endpoint URL matching `ServerEndpointPolicy.kt` (must be `wss://` with non-empty host).
+pub fn validate_wss_url(url: &str) -> Result<String> {
+    let trimmed = url.trim();
+    let parsed: http::Uri = trimmed
+        .parse()
+        .with_context(|| format!("invalid endpoint URL: {trimmed}"))?;
+    if parsed.scheme_str() != Some("wss") {
+        return Err(anyhow!("endpoint harus memakai protokol wss://"));
+    }
+    let host = parsed
+        .host()
+        .filter(|h| !h.is_empty())
+        .ok_or_else(|| anyhow!("endpoint tidak memiliki host"))?;
+    if parsed.authority().map(|a| a.as_str().contains('@')).unwrap_or(false) {
+        return Err(anyhow!("endpoint tidak boleh menyertakan userinfo"));
+    }
+    let _ = host;
+    Ok(trimmed.to_string())
+}
+
+/// Extract canonical `scheme://host[:port]` origin from a WebSocket or HTTP URL.
+pub fn url_origin(url: &str) -> Option<String> {
+    let parsed: http::Uri = url.trim().parse().ok()?;
+    let scheme = parsed.scheme_str()?;
+    let host = parsed.host()?;
+    match parsed.port_u16() {
+        Some(port) => Some(format!("{scheme}://{host}:{port}")),
+        None => Some(format!("{scheme}://{host}")),
+    }
+}
+
+/// Convert `wss://host[:port]/...` appliance endpoint into base HTTPS URL `https://host[:port]`.
+pub fn https_base_from_wss(wss_url: &str) -> Option<String> {
+    let parsed: http::Uri = wss_url.trim().parse().ok()?;
+    let host = parsed.host()?;
+    let scheme = match parsed.scheme_str()? {
+        "wss" => "https",
+        "ws" => "http",
+        other => other,
+    };
+    match parsed.port_u16() {
+        Some(port) => Some(format!("{scheme}://{host}:{port}")),
+        None => Some(format!("{scheme}://{host}")),
+    }
+}
+
 /// Write a template config file with the placeholder token, so the operator
 /// knows exactly which field to fill in. Refuses to overwrite an existing
 /// file unless `force` is set.

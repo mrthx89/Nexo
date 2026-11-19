@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nexo Appliance</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell" id="appShell">
+    <!-- Zone 1: Top Header & Status Capsule -->
+    <header class="top-bar" aria-label="Status dan menu perangkat">
+      <div class="top-spacer" aria-hidden="true"></div>
+
+      <button
+        type="button"
+        id="statusCapsule"
+        class="status-capsule"
+        aria-label="Status koneksi Nexo, klik untuk pengaturan token"
+        title="Buka pengaturan endpoint dan token perangkat"
+      >
+        <span id="statusLed" class="status-led" aria-hidden="true"></span>
+        <span id="statusLabel" class="status-label">Dijeda</span>
+      </button>
+
+      <nav class="header-actions" aria-label="Alat perangkat">
+        <button type="button" id="btnOpenIot" class="icon-btn" aria-label="Kontrol IoT">
+          IoT
+        </button>
+        <button type="button" id="btnOpenVoiceprint" class="icon-btn" aria-label="Sidik Suara dan Uji Mikrofon">
+          Suara
+        </button>
+        <button type="button" id="btnOpenSetup" class="icon-btn" aria-label="Pengaturan Endpoint dan Token">
+          Atur
+        </button>
+      </nav>
+    </header>
+
+    <!-- Zone 2: Living NEXO Silver Mascot Stage -->
+    <main class="main-stage">
+      <div
+        id="mascotStage"
+        class="mascot-stage"
+        role="img"
+        aria-label="Maskot Nexo dengan ekspresi netral"
+        tabindex="0"
+      >
+        <div id="mascotAura" class="mascot-aura" aria-hidden="true"></div>
+        <img
+          id="mascotImg"
+          class="mascot-img"
+          src="assets/svg/netral.svg"
+          alt="Maskot NEXO Silver ekspresi netral"
+          draggable="false"
+        />
+      </div>
+
+      <p id="voiceMood" class="voice-mood" aria-live="polite" hidden></p>
+
+      <!-- Latest Final Assistant Reply / Status Transcript -->
+      <section id="replyCard" class="reply-card" aria-label="Transkrip jawaban Nexo">
+        <p id="replyText" class="reply-text">
+          Dijeda, tekan Mulai mikrofon untuk berbicara.
+        </p>
+        <div class="reply-footer">
+          <span id="replyRole" class="reply-meta">Status</span>
+          <button
+            type="button"
+            id="btnCopyReply"
+            class="secondary-btn copy-btn"
+            aria-label="Salin jawaban terakhir ke clipboard"
+            disabled
+          >
+            Salin jawaban
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Zone 3: Compact Primary Voice Control -->
+    <footer class="control-dock" aria-label="Kontrol mikrofon">
+      <div class="dock-row">
+        <button
+          type="button"
+          id="btnModeToggle"
+          class="secondary-btn mode-btn"
+          aria-pressed="true"
+          title="Ubah antara deteksi suara otomatis (VAD) dan mode manual"
+        >
+          Mode: Auto
+        </button>
+
+        <button
+          type="button"
+          id="btnToggleVoice"
+          class="mic-button"
+          aria-label="Mulai mikrofon"
+          aria-pressed="false"
+        >
+          <svg id="micIcon" class="mic-svg" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"
+            />
+          </svg>
+          <canvas id="waveCanvas" class="wave-canvas" width="56" height="40" hidden></canvas>
+        </button>
+
+        <button
+          type="button"
+          id="btnFinishUtterance"
+          class="secondary-btn finish-btn"
+          hidden
+        >
+          Selesai bicara
+        </button>
+
+        <button
+          type="button"
+          id="btnManualTalk"
+          class="secondary-btn manual-btn"
+          hidden
+        >
+          Mulai bicara
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Dialog: Credential & Endpoint Setup -->
+  <div id="modalSetup" class="modal-backdrop" hidden>
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+      <div class="modal-header">
+        <h2 id="setupTitle">Pengaturan Koneksi & Token</h2>
+        <button type="button" class="close-btn" data-close-modal="modalSetup" aria-label="Tutup pengaturan">Tutup</button>
+      </div>
+      <form id="formSetup" class="modal-body" novalidate>
+        <div class="field-group">
+          <label for="inputDeviceId">Device ID Perangkat</label>
+          <div class="inline-field">
+            <input id="inputDeviceId" type="text" readonly />
+            <button type="button" id="btnCopyDeviceId" class="secondary-btn">Salin ID</button>
+          </div>
+        </div>
+        <div class="field-group">
+          <label for="inputServerUrl">Endpoint Server (WSS)</label>
+          <input id="inputServerUrl" type="url" placeholder="wss://nexo.yhdev.my.id/ws/appliance" required />
+        </div>
+        <div class="field-group">
+          <label for="inputToken">Bearer Token Perangkat (DPAPI terenkripsi)</label>
+          <input id="inputToken" type="password" placeholder="Masukkan bearer token dari administrator" autocomplete="off" />
+          <p id="tokenStatusHint" class="field-hint">Status token: belum diperiksa.</p>
+        </div>
+        <div class="field-group">
+          <label for="inputVadModel">Path Model Silero VAD v6.2.3 (opsional)</label>
+          <input id="inputVadModel" type="text" placeholder="Otomatis terdeteksi jika tersedia di sistem" />
+        </div>
+        <p id="setupFeedback" class="state-banner" hidden></p>
+        <div class="modal-actions">
+          <button type="button" id="btnClearToken" class="danger-btn">Hapus Token</button>
+          <button type="submit" class="primary-btn">Simpan & Hubungkan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dialog: Voiceprint & Private Diagnostic -->
+  <div id="modalVoiceprint" class="modal-backdrop" hidden>
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="vpTitle">
+      <div class="modal-header">
+        <h2 id="vpTitle">Sidik Suara & Uji Mikrofon</h2>
+        <button type="button" class="close-btn" data-close-modal="modalVoiceprint" aria-label="Tutup panel sidik suara">Tutup</button>
+      </div>
+      <div class="modal-body">
+        <div class="tab-bar" role="tablist" aria-label="Mode panel suara">
+          <button type="button" role="tab" id="tabEnroll" class="tab-btn active" aria-selected="true">Sidik Suara</button>
+          <button type="button" role="tab" id="tabDiagnostic" class="tab-btn" aria-selected="false">Uji Mikrofon Privat</button>
+        </div>
+
+        <div id="vpStatusBox" class="status-box">
+          <p id="vpSessionState" class="status-box-title">Meminta akses mikrofon eksklusif...</p>
+          <p id="vpSessionDetail" class="status-box-desc">Percakapan normal dijeda sementara panel ini terbuka.</p>
+        </div>
+
+        <div id="vpProfileMeta" class="info-row" hidden>
+          <span>Status profil server:</span>
+          <strong id="vpEnrolledLabel">Belum terdaftar</strong>
+        </div>
+
+        <div id="vpSamplesBar" class="progress-text" hidden></div>
+
+        <div class="modal-actions wrap-actions">
+          <button type="button" id="btnVpRecord" class="primary-btn" disabled>Mulai Rekam</button>
+          <button type="button" id="btnVpFinish" class="secondary-btn" hidden>Selesai Rekam</button>
+          <button type="button" id="btnVpSave" class="primary-btn" hidden>Simpan Profil</button>
+          <button type="button" id="btnVpPlayDiag" class="secondary-btn" hidden>Putar Klip Lokal</button>
+          <button type="button" id="btnVpDeleteDiag" class="danger-btn" hidden>Hapus Klip</button>
+          <button type="button" id="btnVpUnenroll" class="danger-btn" hidden>Hapus Profil</button>
+          <button type="button" id="btnVpResume" class="secondary-btn">Tutup & Lanjut Mikrofon</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dialog: Smart Home IoT (WiZ LAN + Polytron AC) -->
+  <div id="modalIot" class="modal-backdrop" hidden>
+    <div class="modal-panel modal-wide" role="dialog" aria-modal="true" aria-labelledby="iotTitle">
+      <div class="modal-header">
+        <h2 id="iotTitle">Kontrol Perangkat IoT</h2>
+        <button type="button" class="close-btn" data-close-modal="modalIot" aria-label="Tutup panel IoT">Tutup</button>
+      </div>
+      <div class="modal-body">
+        <div class="tab-bar" role="tablist" aria-label="Kategori perangkat IoT">
+          <button type="button" role="tab" id="tabWiz" class="tab-btn active" aria-selected="true">Lampu WiZ (LAN)</button>
+          <button type="button" role="tab" id="tabAc" class="tab-btn" aria-selected="false">Polytron AC</button>
+        </div>
+
+        <!-- WiZ Tab -->
+        <div id="paneWiz" class="tab-pane">
+          <div class="pane-toolbar">
+            <button type="button" id="btnScanWiz" class="primary-btn">Pindai Jaringan Lokal</button>
+            <div class="scene-group">
+              <button type="button" class="secondary-btn scene-trigger" data-scene="focus_mode">Mode Fokus</button>
+              <button type="button" class="secondary-btn scene-trigger" data-scene="relax_mode">Mode Santai</button>
+            </div>
+          </div>
+          <div id="wizListContainer" class="device-list" aria-live="polite"></div>
+        </div>
+
+        <!-- Polytron AC Tab -->
+        <div id="paneAc" class="tab-pane" hidden>
+          <div id="acContent" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

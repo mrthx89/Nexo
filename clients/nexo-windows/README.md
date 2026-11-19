@@ -1,34 +1,43 @@
-# nexo-client (Windows Nexo — Phase 1: Headless Rust core)
+# nexo-client (Windows Nexo — Rust `nexo-core` + Tauri v2 Desktop)
 
-Headless Rust core for the Windows Nexo appliance client. This crate mirrors the Android client’s audio/VAD/WebSocket/utterance-upload stack (without UI) so it can be embedded by a future Tauri v2 + Svelte/Tailwind shell.
+Lightweight Windows client for Nexo Dedicated Appliance built with a native Rust core (`nexo-core`) and a minimal Tauri v2 WebView2 shell (`nexo-desktop`), reusing the exact v2 outdoor protocol, Silero VAD v6.2.3 model, and NEXO Silver mascot SVGs from Android.
 
-## Scope (Phase 1)
+## Scope & Architecture
 
-- `nexo-core` library crate with modules: `protocol`, `half_duplex`, `upload`, `vad`, `audio`, `ws`, `config`
-- Headless binary `nexo` with `smoke` (fixture, no live server), `config`, and `run` subcommands
-- Wire protocol identical to Android (`client_hello`, v2 outdoor negotiation, utterance upload v2 lease/epoch/chunk state machine)
-- Silero VAD v6.2.3 (ONNX via `ort`) with pinned SHA-256 integrity check matching the Android model
-- **No server/protocol changes. No real credentials** — token is read from env/config and defaults to `[REDACTED]`.
+- `nexo-core/` — Native Rust core (audio capture + resampler to 16 kHz mono PCM16, 24 kHz TTS playback, Silero VAD via `ort`, v2 `NXA2` chunk upload, half-duplex + always-on reconnect engine, DPAPI token store, WiZ LAN UDP port `38899`, IoT/Polytron AC HTTP client, private diagnostic WAV clip).
+- `nexo-desktop/` — Lightweight Tauri v2 GUI shell (pure Vanilla HTML/CSS/JS + 17 NEXO Silver SVG expressions, system tray residency, Setup/Voiceprint/IoT modals).
+- `clients/nexo-windows/DESIGN.md` — Explicit anti-slop design system tokens and contrast/accessibility specification.
 
 ## Repository layout
 
 ```
 clients/nexo-windows/
-├─ Cargo.toml                 # virtual workspace
+├─ Cargo.toml                 # nexo-core workspace
 ├─ Cargo.lock
+├─ DESIGN.md                  # antislop design direction & WCAG AA palette
 ├─ .gitignore
-└─ nexo-core/
-   ├─ Cargo.toml
-   └─ src/
-      ├─ lib.rs
-      ├─ protocol.rs          # ProtocolModels + outdoor negotiation
-      ├─ half_duplex.rs       # HalfDuplexGate port
-      ├─ upload.rs            # v2 utterance upload + chunk/lease/epoch + SHA-256 ack
-      ├─ vad.rs               # Silero v6.2.3 (64 ctx + 512 frame = 576, 2x1x128 state)
-      ├─ audio.rs             # cpal capture/playback helpers (16 kHz mono PCM16)
-      ├─ ws.rs                # tokio-tungstenite + rustls transport
-      ├─ config.rs            # URL/device/token/model config (env/file, placeholder token)
-      └─ bin/nexo.rs          # headless CLI (smoke / run / config)
+├─ nexo-core/
+│  ├─ Cargo.toml
+│  └─ src/
+│     ├─ lib.rs
+│     ├─ protocol.rs          # ProtocolModels + outdoor v2 negotiation
+│     ├─ half_duplex.rs       # HalfDuplexGate
+│     ├─ segmenter.rs         # SpeechSegmenter (onset 0.50, hangover 32)
+│     ├─ buffer.rs            # UtteranceBuffer + pre-roll ring + VAD gain
+│     ├─ upload.rs            # v2 utterance upload + chunk/lease/epoch + SHA-256 ack
+│     ├─ vad.rs               # Silero v6.2.3 (64 ctx + 512 frame = 576, 2x1x128 state)
+│     ├─ audio.rs             # cpal WASAPI capture resampler & 24 kHz TTS playback
+│     ├─ ws.rs                # tokio-tungstenite + rustls auth transport
+│     ├─ config.rs            # WSS validation + origin helpers + TOML/env config
+│     ├─ credential_store.rs  # Origin-bound DPAPI token protection
+│     ├─ diagnostic.rs        # Opt-in private 5-minute diagnostic WAV clip
+│     ├─ iot_wiz.rs           # Philips WiZ LAN UDP broadcast/control
+│     ├─ iot_http.rs          # Server /iot/* and Polytron AC REST client
+│     ├─ engine.rs            # Full async NexoEngine orchestrator + always-on loop
+│     └─ bin/nexo.rs          # Headless CLI (smoke / run / config)
+└─ nexo-desktop/
+   ├─ ui/                     # Vanilla HTML/CSS/JS + 17 NEXO Silver SVGs
+   └─ src-tauri/              # Tauri v2 host + system tray + IPC commands
 ```
 
 ## Configuration (no secrets)
@@ -57,7 +66,13 @@ Pinned VAD model SHA-256: `1a153a22f4509e292a94e67d6f9b85e8deb25b4988682b7e174c6
    cargo run -p nexo-core -- config
    cargo build --release -p nexo-core
    ```
-5. Real run (requires a valid bearer token supplied at runtime, never committed):
+5. Build & run GUI Desktop (`clients/nexo-windows/nexo-desktop/src-tauri/`):
+   ```powershell
+   cargo run --release
+   # atau untuk installer Windows (.msi / .exe):
+   cargo tauri build
+   ```
+6. Real CLI run (requires a valid bearer token supplied at runtime, never committed):
    ```powershell
    $env:NEXO_SERVER_URL="wss://nexo.yhdev.my.id/ws/appliance"
    $env:NEXO_DEVICE_ID="nexo-windows"

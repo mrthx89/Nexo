@@ -13,9 +13,8 @@ use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use nexo_core::config::{Config, TOKEN_PLACEHOLDER};
 use nexo_core::half_duplex::HalfDuplexGate;
-use nexo_core::protocol::{self, ClientHello, VoiceStart, VoiceEnd};
+use nexo_core::protocol::{self, ClientHello};
 use nexo_core::upload::{self, Sealed, UploadSession, Transport};
-use nexo_core::ws::{self, Incoming};
 
 #[derive(Parser)]
 #[command(name = "nexo", version, about = "Nexo headless appliance client")]
@@ -221,125 +220,61 @@ fn up_sanity_sent(wire: &FixtureTransport) -> u32 {
         .sum()
 }
 
-/// The real run loop. Connects to the server, captures PCM, runs VAD, uploads
-/// chunks, and handles transcription / state_change / playback.
+/// Connect to the server and run the full `NexoEngine` live audio loop.
 async fn run(server: Option<String>, device_id: Option<String>) -> Result<()> {
     let cfg = Config::load()?;
-    let server = server.unwrap_or(cfg.server_url.clone());
-    let device_id = device_id.unwrap_or(cfg.device_id.clone());
+    let cred_store = nexo_core::credential_store::DeviceCredentialStore::default_store();
+    let server_url = server
+        .or_else(|| cred_store.saved_server_url())
+        .unwrap_or(cfg.server_url.clone());
+    let device_id = device_id
+        .or_else(|| cred_store.load_or_create_device_id().ok())
+        .unwrap_or(cfg.device_id.clone());
 
-    if !cfg.has_real_token() {
+    let token = if cfg.has_real_token() {
+        Some(cfg.bearer_token.clone())
+    } else {
+        cred_store.read_token(&server_url, &device_id)
+    };
+    if token.is_none() {
         tracing::warn!(
-            "bearer token is the placeholder {TOKEN_PLACEHOLDER:?}; \
-             set {ENV_HINT} to authenticate against a real server"
+            "bearer token is missing; set {ENV_HINT} or save credentials via Nexo Desktop"
         );
     }
 
-    println!("connecting to {server} (device {device_id})...");
-    let mut conn = ws::connect_with_retry(&server, 5, std::time::Duration::from_secs(1))
-        .await
-        .context("connect to server")?;
-    println!("connected; sending client_hello");
-
-    let hello = ClientHello::new(&device_id);
-    conn.send_json(&serde_json::to_value(&hello)?).await?;
-
-    // Half-duplex gate: opens on server_hello, mic stays gated by VAD.
-    let gate = HalfDuplexGate::new();
-
-    let _sealed_buf: Option<Sealed> = None;
-    let mut upload = UploadSession::new();
+    let handle = nexo_core::engine::spawn_engine(nexo_core::engine::EngineConfig {
+        server_url: server_url.clone(),
+        device_id: device_id.clone(),
+        token,
+        vad_model: cfg.vad_model.clone(),
+    });
+    let mut rx = handle.subscribe();
+    handle.send(nexo_core::engine::EngineCommand::StartVoice)?;
+    println!("nexo headless running on {server_url} (device {device_id}); press Ctrl+C to stop");
 
     loop {
-        match conn.next_message().await? {
-            Some(Incoming::Json(value)) => {
-                let msg_type = value["type"].as_str().unwrap_or("");
-                match msg_type {
-                    "server_hello" => {
-                        let session = protocol::negotiate(&value).context("negotiate")?;
-                        gate.connected();
-                        gate.microphone_ready(true);
-                        if let Err(e) = upload.connect(&session, true, nexo_core::protocol::chrono_now_millis()) {
-                            tracing::warn!(%e, "upload connect failed");
-                        }
-                        println!("<- server_hello: session {} (agent {})",
-                            session.connection_id, value["agent_name"].as_str().unwrap_or("?"));
-                    }
-                    "state_change" => {
-                        let state = value["state"].as_str().unwrap_or("");
-                        println!("<- state_change: {state} ({})",
-                            value["message"].as_str().unwrap_or(""));
-                        match state {
-                            "thinking" => {
-                                gate.state_changed(nexo_core::half_duplex::GateState::Thinking);
-                            }
-                            "speaking" => {
-                                gate.state_changed(nexo_core::half_duplex::GateState::Speaking);
-                                gate.tts_started();
-                            }
-                            "listening" => {
-                                gate.state_changed(nexo_core::half_duplex::GateState::Listening);
-                                gate.playback_drained();
-                            }
-                            "idle" => {
-                                gate.state_changed(nexo_core::half_duplex::GateState::Idle);
-                                gate.playback_drained();
-                            }
-                            _ => {}
-                        }
-                    }
-                    "transcription" => {
-                        println!("<- transcription[{}]: {} (final={})",
-                            value["role"].as_str().unwrap_or("?"),
-                            value["text"].as_str().unwrap_or(""),
-                            value["is_final"].as_bool().unwrap_or(false));
-                    }
-                    "utterance_ack" => {
-                        upload.ack(
-                            value["connection_id"].as_str().unwrap_or(""),
-                            value["request_id"].as_str().unwrap_or(""),
-                            value["utterance_id"].as_str().unwrap_or(""),
-                            value["stage"].as_str().unwrap_or(""),
-                            value["next"].as_u64().unwrap_or(0) as u32,
-                            value["samples"].as_u64().unwrap_or(0) as u32,
-                            value["sha256"].as_str(),
-                            nexo_core::protocol::chrono_now_millis(),
-                        );
-                    }
-                    "utterance_result" => {
-                        upload.result(value["utterance_id"].as_str().unwrap_or(""));
-                    }
-                    "error" => {
-                        let code = value["code"].as_str().unwrap_or("unknown");
-                        tracing::error!(%code, "server error");
-                        if let Some(uid) = value["utterance_id"].as_str() {
-                            upload.server_error(uid, code);
-                        }
-                    }
-                    other => {
-                        tracing::debug!(msg = other, "unhandled message");
-                    }
-                }
-            }
-            Some(Incoming::Pong) => {
-                // Keep-alive; nothing to do.
-            }
-            Some(Incoming::Binary(bytes)) => {
-                // Binary frames from the server are not part of the v2 upload
-                // path (uploads are client→server). Log and drop.
-                tracing::debug!(len = bytes.len(), "ignored binary frame");
-            }
-            None => {
-                println!("connection closed by server");
+        tokio::select! {
+            _ = tokio::signal::ctrl_c() => {
+                let _ = handle.send(nexo_core::engine::EngineCommand::Shutdown);
                 break;
+            }
+            ev = rx.recv() => {
+                match ev {
+                    Ok(nexo_core::engine::EngineEvent::Snapshot(s)) => {
+                        println!("[{:?}] {}", s.state, s.message);
+                    }
+                    Ok(nexo_core::engine::EngineEvent::Transcription { role, text, is_final }) => {
+                        if is_final {
+                            println!("[{role}] {text}");
+                        }
+                    }
+                    Ok(nexo_core::engine::EngineEvent::Telemetry { .. }) => {}
+                    Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => {}
+                    Err(_) => break,
+                }
             }
         }
     }
-
-    // Keep these references live for the compiler without pulling in the audio
-    // pipeline until the capture loop is wired (next phase).
-    let _ = (VoiceStart::now(), VoiceEnd::now());
-    let _ = &_sealed_buf;
     Ok(())
 }
 
