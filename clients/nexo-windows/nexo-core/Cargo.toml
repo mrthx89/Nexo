@@ -1,0 +1,33 @@
+[package]
+name = "nexo-core"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+tokio.workspace = true
+tokio-tungstenite.workspace = true
+futures-util.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+cpal.workspace = true
+ort.workspace = true
+sha2.workspace = true
+uuid.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+clap.workspace = true
+bytes.workspace = true
+http.workspace = true
+toml.workspace = true
+rand.workspace = true
+hex.workspace = true
+
+[[bin]]
+name = "nexo"
+path = "src/bin/nexo.rs"
+
+[lib]
+name = "nexo_core"
+path = "src/lib.rs"

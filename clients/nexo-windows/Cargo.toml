@@ -1,0 +1,30 @@
+[workspace]
+resolver = "2"
+members = ["nexo-core"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+
+[workspace.dependencies]
+tokio = { version = "1", features = ["full"] }
+tokio-tungstenite = { version = "0.24", features = ["rustls-tls-webpki-roots"] }
+futures-util = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+cpal = "0.15"
+# ort 2.0 rc: download-binaries pulls the prebuilt ONNX Runtime and static-links
+# it (self-contained binary, no libonnxruntime.so / ORT_DYLIB_PATH at runtime).
+ort = { version = "=2.0.0-rc.15", features = ["download-binaries"] }
+sha2 = "0.10"
+uuid = { version = "1", features = ["v4", "serde"] }
+anyhow = "1"
+thiserror = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+clap = { version = "4", features = ["derive", "env"] }
+bytes = "1"
+http = "1"
+toml = "0.8"
+rand = "0.8"
+hex = "0.4"
