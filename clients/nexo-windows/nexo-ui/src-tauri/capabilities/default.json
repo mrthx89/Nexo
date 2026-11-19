@@ -10,15 +10,23 @@
     "core:window:allow-close",
     "core:window:allow-set-focus",
     "core:window:allow-is-visible",
+    "core:window:allow-is-minimized",
     "core:window:allow-minimize",
     "core:window:allow-unminimize",
+    "core:window:allow-set-skip-taskbar",
     "core:tray:default",
     "core:menu:default",
     "core:event:default",
     "notification:default",
+    "notification:allow-is-permission-granted",
+    "notification:allow-request-permission",
+    "notification:allow-notify",
     "autostart:allow-enable",
     "autostart:allow-disable",
     "autostart:allow-is-enabled",
-    "clipboard-manager:allow-write-text"
+    "clipboard-manager:allow-write-text",
+    "dialog:default",
+    "dialog:allow-ask",
+    "dialog:allow-message"
   ]
 }

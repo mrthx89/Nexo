@@ -85,3 +85,5 @@ keystore.properties
 *PLAN*.md
 *REPAIR*.md
 *SCRATCH*.md
+!clients/nexo-windows/nexo-ui/src/lib/
+
