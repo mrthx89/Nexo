@@ -1,0 +1,24 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default capabilities for Nexo windows",
+  "windows": ["main", "capsule"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-show",
+    "core:window:allow-hide",
+    "core:window:allow-close",
+    "core:window:allow-set-focus",
+    "core:window:allow-is-visible",
+    "core:window:allow-minimize",
+    "core:window:allow-unminimize",
+    "core:tray:default",
+    "core:menu:default",
+    "core:event:default",
+    "notification:default",
+    "autostart:allow-enable",
+    "autostart:allow-disable",
+    "autostart:allow-is-enabled",
+    "clipboard-manager:allow-write-text"
+  ]
+}
